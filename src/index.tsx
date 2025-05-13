@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { base_path } from "./environment";
+import { route_path } from "./environment";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../src/style/css/feather.css";
 import "../src/index.scss";
@@ -26,7 +26,7 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
     <HelmetProvider>
-      <BrowserRouter basename={base_path}>
+      <BrowserRouter basename={route_path}>
         <Loader />
         <ALLRoutes />
       </BrowserRouter>
