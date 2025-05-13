@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Table from "../../../core/common/dataTable/index";
 import Select from "react-select";
@@ -1244,7 +1244,7 @@ const Leads = () => {
         {/* Add Company */}
         <Offcanvas show={show}  onHide={handleClose} placement="end" >
           <div className="offcanvas-header border-bottom">
-            <h5 className="fw-semibold">Add New Company</h5>
+            <h5 className="fw-semibold">Add New Companys</h5>
             <button
               type="button"
               className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
@@ -1353,14 +1353,14 @@ const Leads = () => {
                             <input type="text" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-md-6">
+                        {/* <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
                               Fax <span className="text-danger">*</span>
                             </label>
                             <input type="text" className="form-control" />
                           </div>
-                        </div>
+                        </div> */}
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
@@ -1369,7 +1369,7 @@ const Leads = () => {
                             <input type="text" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-md-6">
+                        {/* <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">Ratings</label>
                             <div className="icon-form-end">
@@ -1383,21 +1383,37 @@ const Leads = () => {
                               />
                             </div>
                           </div>
-                        </div>
-                        <div className="col-md-6">
+                        </div> */}
+                        {/* <div className="col-md-6">
                           <div className="fmb-3">
                             <label className="col-form-label">Owner</label>
                             <SelectWithImage2 />
                           </div>
-                        </div>
-                        <div className="col-md-6">
+                        </div> */}
+                        {/* <div className="col-md-12">
+                          <div className="mb-3">
+                            <label className="col-form-label">
+                              Owner Name
+                            </label>
+                            <input type="text" className="form-control" />
+                          </div>
+                        </div> */}
+                        {/* <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">Tags </label>
                             <TagsInput
-                              // className="input-tags form-control"
+                               
                               value={owner}
                               onChange={setOwner}
                             />
+                          </div>
+                        </div> */}
+                        <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="col-form-label">
+                               Owner Name <span className="text-danger">*</span>
+                            </label>
+                            <input type="text" className="form-control" />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1405,11 +1421,12 @@ const Leads = () => {
                             <div className="d-flex align-items-center justify-content-between">
                               <label className="col-form-label">Deals</label>
                             </div>
-                            <Select
+                            {/* <Select
                               className="select2"
                               options={optiondeals}
                               classNamePrefix="react-select"
-                            />
+                            /> */}
+                             <input type="text" className="form-control" />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1436,10 +1453,19 @@ const Leads = () => {
                             />
                           </div>
                         </div>
-                        <div className="col-md-12">
+                        {/* <div className="col-md-12">
                           <div className="mb-3">
                             <label className="col-form-label">Contacts</label>
                             <SelectWithImage2 />
+                          </div>
+                        </div> */}
+
+                         <div className="col-md-6">
+                          <div className="mb-3">
+                            <label className="col-form-label">
+                              Contacts <span className="text-danger">*</span>
+                            </label>
+                            <input type="text" className="form-control" />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1543,7 +1569,7 @@ const Leads = () => {
                 </div>
                 {/* /Address Info */}
                 {/* Social Profile */}
-                <div className="accordion-item border-top rounded mb-3">
+                {/* <div className="accordion-item border-top rounded mb-3">
                   <div className="accordion-header">
                     <Link
                       to="#"
@@ -1603,7 +1629,7 @@ const Leads = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 {/* /Social Profile */}
                 {/* Access */}
                 <div className="accordion-item border-top rounded mb-3">

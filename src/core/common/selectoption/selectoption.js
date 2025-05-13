@@ -54,6 +54,7 @@ export const optionschoose = [
     { value: 'Referral Sites', label: 'Referral Sites' },
     { value: 'Web Analytics', label: 'Web Analytics' },
     { value: 'Previous Purchases', label: 'Previous Purchases' },
+     { value: 'Other', label: 'Other' },
   ];
   export const optionindustry = [
     { value: 'Choose', label: 'Choose' },
@@ -62,6 +63,7 @@ export const optionschoose = [
     { value: 'Hotels', label: 'Hotels' },
     { value: 'Financial Services', label: 'Financial Services' },
     { value: 'Insurance', label: 'Insurance' },
+    { value: 'Other', label: 'Other' },
   ];
   export const optiondeals = [
     { value: 'Choose', label: 'Choose' },
@@ -77,6 +79,7 @@ export const optionschoose = [
     { value: 'Arabic', label: 'Arabic' },
     { value: 'Chinese', label: 'Chinese' },
     { value: 'Hindi', label: 'Hindi' },
+    { value: 'Other', label: 'Other' },
 ];
  export const optionsowner = [
     { label: 'Jerald', value: 'Jerald', image: 'assets/img/profiles/avatar-14.jpg' },

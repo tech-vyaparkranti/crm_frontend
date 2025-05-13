@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import ImageWithBasePath from "../../core/common/imageWithBasePath";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../router/all_routes";
-import api from "../../core/api";
+import api from "../../api/api";
+ 
+ 
 
 type PasswordField = "password" | "confirmPassword";
 

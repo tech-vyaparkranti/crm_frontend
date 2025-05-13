@@ -278,7 +278,7 @@ const CompaniesDetails = () => {
                     </li>
                   </ul>
                   <hr />
-                  <h6 className="mb-3 fw-semibold">Tags</h6>
+                  {/* <h6 className="mb-3 fw-semibold">Tags</h6>
                   <div className="mb-3">
                     <Link
                       to="#"
@@ -292,7 +292,7 @@ const CompaniesDetails = () => {
                     >
                       Rated
                     </Link>
-                  </div>
+                  </div> */}
                   <hr />
                   <div className="d-flex align-items-center justify-content-between flex-wrap">
                     <h6 className="mb-3 fw-semibold">Company</h6>
@@ -337,7 +337,7 @@ const CompaniesDetails = () => {
                     </div>
                   </div>
                   <hr />
-                  <h6 className="mb-3 fw-semibold">Social Profile</h6>
+                  {/* <h6 className="mb-3 fw-semibold">Social Profile</h6>
                   <ul className="social-info">
                     <li>
                       <Link to="#">
@@ -369,7 +369,7 @@ const CompaniesDetails = () => {
                         <i className="fa-brands fa-linkedin" />
                       </Link>
                     </li>
-                  </ul>
+                  </ul> */}
                   <hr />
                   <h6 className="mb-3 fw-semibold">Settings</h6>
                   <Link to="#" className="d-block mb-3">
