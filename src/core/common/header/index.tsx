@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import ImageWithBasePath from "../imageWithBasePath";
 import { all_routes } from "../../../feature-module/router/all_routes";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,6 +34,7 @@ const Header = () => {
     dispatch(setExpandMenu(false));
   };
 
+  const navigate = useNavigate();
   const [layoutBs, setLayoutBs] = useState(localStorage.getItem("dataTheme"));
   const isLockScreen = location.pathname === "/lock-screen";
 
@@ -569,7 +570,18 @@ const Header = () => {
             <Link className="dropdown-item" to={route.profile}>
               <i className="ti ti-user-pin" /> My Profile
             </Link>
-            <Link className="dropdown-item" to={route.login}>
+            {/* <Link className="dropdown-item" to={route.login}>
+              <i className="ti ti-lock" /> Logout
+            </Link> */}
+            <Link
+              className="dropdown-item"
+              to="#"
+              onClick={(e) => {
+                e.preventDefault();
+                localStorage.removeItem("isLoggedIn");
+                navigate(route.login);
+              }}
+            >
               <i className="ti ti-lock" /> Logout
             </Link>
           </div>

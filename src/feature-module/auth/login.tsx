@@ -1,15 +1,46 @@
 import React, { useEffect, useState } from "react";
 import ImageWithBasePath from "../../core/common/imageWithBasePath";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../router/all_routes";
+import api from "../../api/api";
 
 const Login = () => {
   const route = all_routes;
   const [isPasswordVisible, setPasswordVisible] = useState(false);
 
+  type FormData = {
+  password: string;
+  email: string;
+  [key: string]: string; // for dynamic keys
+};
+
+const [form, setForm] = useState<FormData>({
+  password: '',
+  email: ''
+});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm((prev) => ({
+    ...prev,
+    [e.target.name]: e.target.value,
+  }));
+  }
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
   };
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      await api.post("/api/login", form);
+      localStorage.setItem("isLoggedIn", "true");
+      navigate(route.dealsDashboard);
+    } catch (error: any) {
+      console.error("Registration failed:", error.response?.data);
+      alert("Login failed. Please check your credentials.");
+    }
+  }
   useEffect(() => {
     localStorage.setItem("menuOpened", "Dashboard");
   }, []);
@@ -17,7 +48,7 @@ const Login = () => {
     <div className="account-content">
       <div className="d-flex flex-wrap w-100 vh-100 overflow-hidden account-bg-01">
         <div className="d-flex align-items-center justify-content-center flex-wrap vh-100 overflow-auto p-4 w-50 bg-backdrop">
-          <form className="flex-fill">
+          <form className="flex-fill" onSubmit={handleSubmit}>
             <div className="mx-auto mw-450">
               <div className="text-center mb-4">
                 <ImageWithBasePath
@@ -36,7 +67,7 @@ const Login = () => {
                   <span className="input-icon-addon">
                     <i className="ti ti-mail"></i>
                   </span>
-                  <input type="text" className="form-control" />
+                  <input type="text" className="form-control" name="email" onChange={handleChange}/>
                 </div>
               </div>
               <div className="mb-3">
@@ -45,6 +76,8 @@ const Login = () => {
                   <input
                     type={isPasswordVisible ? "text" : "password"}
                     className="pass-input form-control"
+                    name = "password"
+                    onChange={handleChange}
                   />
                   <span
                     className={`ti toggle-password ${
@@ -77,12 +110,15 @@ const Login = () => {
                 </div>
               </div>
               <div className="mb-3">
-                <Link
+                {/* <Link
                   to={route.dealsDashboard}
                   className="btn btn-primary w-100"
                 >
                   Sign In
-                </Link>
+                </Link> */}
+                  <button type="submit" className="btn btn-primary w-100">
+                    Sign In
+                  </button>
               </div>
               <div className="mb-3">
                 <h6>

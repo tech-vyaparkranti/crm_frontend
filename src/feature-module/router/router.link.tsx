@@ -200,13 +200,19 @@ import PackagesGrid from "../super-admin/packages/packagegrid";
 import Domain from "../super-admin/domin";
 import PurchaseTransaction from "../super-admin/purchase-transaction";
 import LayoutDemo from "../mainMenu/layout-dashoard";
+import PrivateRoute from "./protectedRoute";
 
 const route = all_routes;
 
 export const publicRoutes = [
   {
     path: route.dealsDashboard,
-    element: <DealsDashboard />,
+    // element: <DealsDashboard />,
+     element : (
+      <PrivateRoute>
+        <DealsDashboard />
+      </PrivateRoute>
+    ),
     route: Route,
     title: 'Deals Dashboard'
   },
