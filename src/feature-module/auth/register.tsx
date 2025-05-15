@@ -61,7 +61,7 @@ const Register = () => {
             <div className="mx-auto mw-450">
               <div className="text-center mb-4">
                 <ImageWithBasePath
-                  src="assets/img/logo.svg"
+                  src="assets/img/logocorrectwhite.jpg"
                   className="img-fluid"
                   alt="Logo"
                 />
@@ -221,7 +221,7 @@ const Register = () => {
               </div>
 
               <div className="d-flex align-items-center justify-content-center flex-wrap mb-3">
-                <div className="text-center me-2 flex-fill">
+                {/* <div className="text-center me-2 flex-fill">
                   <Link
                     to="#"
                     className="br-10 p-2 px-4 btn bg-pending d-flex align-items-center justify-content-center"
@@ -232,7 +232,7 @@ const Register = () => {
                       alt="Facebook"
                     />
                   </Link>
-                </div>
+                </div> */}
                 <div className="text-center me-2 flex-fill">
                   <Link
                     to="#"
@@ -245,7 +245,7 @@ const Register = () => {
                     />
                   </Link>
                 </div>
-                <div className="text-center flex-fill">
+                {/* <div className="text-center flex-fill">
                   <Link
                     to="#"
                     className="bg-dark br-10 p-2 px-4 btn btn-dark d-flex align-items-center justify-content-center"
@@ -256,7 +256,7 @@ const Register = () => {
                       alt="Apple"
                     />
                   </Link>
-                </div>
+                </div> */}
               </div>
 
               <div className="text-center">
