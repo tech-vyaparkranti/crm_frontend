@@ -1436,19 +1436,19 @@ const Leads = () => {
                             <input type="text" className="form-control" name="owner_name"/>
                           </div>
                         </div>
-                        <div className="col-md-6">
+                         {/*<div className="col-md-6">
                           <div className="mb-3">
                             <div className="d-flex align-items-center justify-content-between">
                               <label className="col-form-label">Deals</label>
                             </div>
-                            {/* <Select
+                            <Select
                               className="select2"
                               options={optiondeals}
                               classNamePrefix="react-select"
-                            /> */}
+                            /> 
                             <input type="text" className="form-control" />
                           </div>
-                        </div>
+                        </div>*/}
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
