@@ -1,4 +1,4 @@
- import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Table from "../../../core/common/dataTable/index";
 import Select from "react-select";
@@ -16,19 +16,20 @@ import {
 } from "../../../core/common/selectoption/selectoption";
 import { leadsData } from "../../../core/data/json/leads";
 import { Modal } from "react-bootstrap";
-import { TableData } from "../../../core/data/interface";
+import { LeadTableData, TableData } from "../../../core/data/interface";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import CollapseHeader from "../../../core/common/collapse-header";
 import { SelectWithImage2 } from "../../../core/common/selectWithImage2";
 import { all_routes } from "../../router/all_routes";
 import { TagsInput } from "react-tag-input-component";
-import Offcanvas from 'react-bootstrap/Offcanvas';
+import Offcanvas from "react-bootstrap/Offcanvas";
+import api from "../../../api/api";
 const Leads = () => {
   const route = all_routes;
   const [adduser, setAdduser] = useState(false);
   const [addcompany, setAddCompany] = useState(false);
   const [modalTitle, setModalTitle] = useState("Add New Lead");
-  const data = leadsData;
+  // const data = leadsData;
   const [owner, setOwner] = useState(["Collab"]);
   const [openModal, setOpenModal] = useState(false);
   const [openModal2, setOpenModal2] = useState(false);
@@ -50,6 +51,35 @@ const Leads = () => {
   const addcompanyPopup = () => {
     setAddCompany(!addcompany);
   };
+
+  const [tableData, setTableData] = useState<LeadTableData[]>([]);
+  const [data, setData] = useState([]); // state to hold leads
+
+  useEffect(() => {
+    api
+      .get("/api/lead-data")
+      .then((response) => {
+        const formattedData = response.data.leads.map((lead: any) => ({
+          id: lead.id,
+          lead_name: lead.lead_name,
+          company_name: lead.company_name,
+          company_address: lead.address
+            ? `${lead.address.city}, ${lead.address.state}`
+            : "",
+          phone: lead.phone1,
+          email: lead.email,
+          status: lead.status,
+          created_date: new Date(lead.created_at).toLocaleDateString(),
+          owner: lead.owner_name,
+        }));
+        console.log(formattedData, "lead");
+        setTableData(formattedData);
+        setData(formattedData);
+      })
+      .catch((error) => {
+        console.error("Error fetching leads:", error);
+      });
+  }, []);
 
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
@@ -81,7 +111,7 @@ const Leads = () => {
           {text}
         </Link>
       ),
-      sorter: (a: TableData, b: TableData) =>
+      sorter: (a: LeadTableData, b: LeadTableData) =>
         a.lead_name.length - b.lead_name.length,
     },
 
@@ -110,57 +140,55 @@ const Leads = () => {
       title: "Phone",
       dataIndex: "phone",
       key: "phone",
-      sorter: (a: TableData, b: TableData) =>
+      sorter: (a: LeadTableData, b: LeadTableData) =>
         a.company_name.length - b.company_name.length,
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
-      sorter: (a: TableData, b: TableData) =>
+      sorter: (a: LeadTableData, b: LeadTableData) =>
         a.company_name.length - b.company_name.length,
     },
     {
       title: "Lead Status",
       dataIndex: "status",
-      render: (text: string) => (
-        <div>
-          {text === "Closed" && (
-            <span className="badge badge-pill badge-status bg-success">
-              {text}
-            </span>
-          )}
-          {text === "Connected" && (
-            <span className="badge badge-pill badge-status bg-warning">
-              {text}
-            </span>
-          )}
-          {text === "Lost" && (
-            <span className="badge badge-pill badge-status bg-danger">
-              {text}
-            </span>
-          )}
-          {text === "Not connected" && (
-            <span className="badge badge-pill badge-status bg-pending">
-              {text}
-            </span>
-          )}
-        </div>
-      ),
+      render: (text: string) => {
+        const status = text.toLowerCase();
+
+        const badgeMap: Record<string, { className: string; label: string }> = {
+          closed: { className: "bg-success", label: "Closed" },
+          connected: { className: "bg-warning", label: "Connected" },
+          lost: { className: "bg-danger", label: "Lost" },
+          "not connected": { className: "bg-pending", label: "Not connected" },
+          new: { className: "bg-secondary", label: "New" }, // added for completeness
+        };
+
+        const badge = badgeMap[status];
+
+        if (!badge) return <span>{text}</span>;
+
+        return (
+          <span className={`badge badge-pill badge-status ${badge.className}`}>
+            {badge.label}
+          </span>
+        );
+      },
+
       sorter: true,
     },
     {
       title: "Created Date",
       dataIndex: "created_date",
       key: "created_date",
-      sorter: (a: TableData, b: TableData) =>
+      sorter: (a: LeadTableData, b: LeadTableData) =>
         a.company_name.length - b.company_name.length,
     },
     {
       title: "Lead Owner",
       dataIndex: "owner",
       key: "owner",
-      sorter: (a: TableData, b: TableData) =>
+      sorter: (a: LeadTableData, b: LeadTableData) =>
         a.company_name.length - b.company_name.length,
     },
     {
@@ -177,11 +205,7 @@ const Leads = () => {
             <i className="fa fa-ellipsis-v" />
           </Link>
           <div className="dropdown-menu dropdown-menu-right">
-            <Link
-              className="dropdown-item"
-              to="#"
-              onClick={handleShow3}
-            >
+            <Link className="dropdown-item" to="#" onClick={handleShow3}>
               <i className="ti ti-edit text-blue" /> Edit
             </Link>
 
@@ -246,7 +270,6 @@ const Leads = () => {
     { value: "Pound", label: "Pound" },
     { value: "Rupee", label: "Rupee" },
   ];
-
 
   return (
     <>
@@ -980,7 +1003,7 @@ const Leads = () => {
         </div>
         {/* /Page Wrapper */}
         {/* Add Lead */}
-        <Offcanvas show={show2}  onHide={handleClose2} placement="end" >
+        <Offcanvas show={show2} onHide={handleClose2} placement="end">
           <div className="offcanvas-header border-bottom">
             <h5 className="fw-semibold">Add New Lead</h5>
             <button
@@ -1035,11 +1058,7 @@ const Leads = () => {
                   <div className="mb-3">
                     <div className="d-flex justify-content-between align-items-center">
                       <label className="col-form-label">Company Name</label>
-                      <Link
-                        to=""
-                        className="label-add "
-                        onClick={handleShow}
-                      >
+                      <Link to="" className="label-add " onClick={handleShow}>
                         <i className="ti ti-square-rounded-plus" />
                         Add New
                       </Link>
@@ -1242,7 +1261,7 @@ const Leads = () => {
         </Offcanvas>
         {/* /Add Lead */}
         {/* Add Company */}
-        <Offcanvas show={show}  onHide={handleClose} placement="end" >
+        <Offcanvas show={show} onHide={handleClose} placement="end">
           <div className="offcanvas-header border-bottom">
             <h5 className="fw-semibold">Add New Companys</h5>
             <button
@@ -1302,9 +1321,9 @@ const Leads = () => {
                                 <label className="profile-upload-btn">
                                   <i className="ti ti-file-broken" /> Upload
                                   File
-                                  <input type="file" className="input-img" />
+                                  <input type="file" className="input-img" name="image" />
                                 </label>
-                                <p>JPG, GIF or PNG. Max size of 800K</p>
+                                <p>JPG, GIF or PNG. Max size of 2 MB</p>
                               </div>
                             </div>
                           </div>
@@ -1314,7 +1333,7 @@ const Leads = () => {
                             <label className="col-form-label">
                               Company Name
                             </label>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="company_name"/>
                           </div>
                         </div>
                         <div className="col-md-12">
@@ -1332,11 +1351,12 @@ const Leads = () => {
                                   id="user"
                                   className="check"
                                   defaultChecked
+                                  name="email"
                                 />
                                 <label htmlFor="user" className="checktoggle" />
                               </div>
                             </div>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="email"/>
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1344,13 +1364,13 @@ const Leads = () => {
                             <label className="col-form-label">
                               Phone 1 <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="phone1" />
                           </div>
                         </div>
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">Phone 2</label>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="phone2"/>
                           </div>
                         </div>
                         {/* <div className="col-md-6">
@@ -1366,7 +1386,7 @@ const Leads = () => {
                             <label className="col-form-label">
                               Website <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="website_url"/>
                           </div>
                         </div>
                         {/* <div className="col-md-6">
@@ -1411,9 +1431,9 @@ const Leads = () => {
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
-                               Owner Name <span className="text-danger">*</span>
+                              Owner Name <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="owner_name"/>
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1426,7 +1446,7 @@ const Leads = () => {
                               options={optiondeals}
                               classNamePrefix="react-select"
                             /> */}
-                             <input type="text" className="form-control" />
+                            <input type="text" className="form-control" />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1438,6 +1458,7 @@ const Leads = () => {
                               className="select2"
                               options={optionsource}
                               classNamePrefix="react-select"
+                              name=""
                             />
                           </div>
                         </div>
@@ -1460,7 +1481,7 @@ const Leads = () => {
                           </div>
                         </div> */}
 
-                         <div className="col-md-6">
+                        <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
                               Contacts <span className="text-danger">*</span>
@@ -1473,7 +1494,7 @@ const Leads = () => {
                             <label className="col-form-label">
                               Currency <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" />
+                            <input type="text" className="form-control" name="currency"/>
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1741,7 +1762,7 @@ const Leads = () => {
         </Offcanvas>
         {/* /Add Company */}
         {/* Edit Lead */}
-        <Offcanvas show={show3}  onHide={handleClose3} placement="end" >
+        <Offcanvas show={show3} onHide={handleClose3} placement="end">
           <div className="offcanvas-header border-bottom">
             <h5 className="fw-semibold">Edit Lead</h5>
             <button
@@ -1796,11 +1817,7 @@ const Leads = () => {
                   <div className="mb-3">
                     <div className="d-flex justify-content-between align-items-center">
                       <label className="col-form-label">Company Name</label>
-                      <Link
-                        to=""
-                        className="label-add "
-                        onClick={handleShow}
-                      >
+                      <Link to="" className="label-add " onClick={handleShow}>
                         <i className="ti ti-square-rounded-plus" />
                         Add New
                       </Link>
@@ -2059,7 +2076,11 @@ const Leads = () => {
                 <Link to="#" className="btn btn-light" data-bs-dismiss="modal">
                   Cancel
                 </Link>
-                <Link to={route.leadsDetails} onClick={() => setOpenModal2(false)} className="btn btn-primary">
+                <Link
+                  to={route.leadsDetails}
+                  onClick={() => setOpenModal2(false)}
+                  className="btn btn-primary"
+                >
                   View Details
                 </Link>
               </div>
@@ -2089,7 +2110,11 @@ const Leads = () => {
                 <Link to="#" className="btn btn-light" data-bs-dismiss="modal">
                   Cancel
                 </Link>
-                <Link to={route.companyDetails} onClick={() => setOpenModal(false)} className="btn btn-primary">
+                <Link
+                  to={route.companyDetails}
+                  onClick={() => setOpenModal(false)}
+                  className="btn btn-primary"
+                >
                   View Details
                 </Link>
               </div>

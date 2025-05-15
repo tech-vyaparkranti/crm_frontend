@@ -116,3 +116,15 @@ export interface DeleteRequestInterface {
 export interface AppState {
   mouseOverSidebar: string;
 }
+
+export interface LeadTableData {
+  id: number;
+  lead_name: string;
+  company_name: string;
+  company_address: string;
+  phone: string;
+  email: string;
+  status: string;
+  created_date: string;
+  owner: string;
+}

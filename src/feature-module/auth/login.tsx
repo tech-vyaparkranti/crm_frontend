@@ -33,8 +33,9 @@ const [form, setForm] = useState<FormData>({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await api.post("/api/login", form);
+       const response = await api.post("/api/login", form);
       localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("token", response.data.token);
       navigate(route.dealsDashboard);
     } catch (error: any) {
       console.error("Registration failed:", error.response?.data);
