@@ -168,20 +168,15 @@ const LeadsDetails = () => {
                           <h6 className="text-default fw-medium">HT</h6>
                         </div>
                         <div>
-                          <h5 className="mb-1">
-                            Tremblay and Rath{" "}
-                            <span className="star-icon">
-                              <i className="fa-solid fa-star" />
-                            </span>
-                          </h5>
+                         <h5 className="mb-1">{lead?.lead_name || "Lead Name"}</h5>
                           <p className="mb-1">
                             <i className="ti ti-building me-1" />
                             Google Inc
                           </p>
-                          <p className="mb-0">
-                            <i className="ti ti-map-pin-pin me-1" />
-                            22, Ave Street, Newyork, USA
-                          </p>
+                          <p className="mb-1">
+  <i className="ti ti-building me-1" />
+  {lead?.company || "Company Name"}
+</p>
                         </div>
                       </div>
                       <div className="contacts-action">

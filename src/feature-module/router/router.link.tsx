@@ -451,12 +451,12 @@ export const publicRoutes = [
   {
     path: route.localization, element: <Localization />, route: Route, title: 'Localization'
   },
-  {
-    path: route.leadsDetails,
-    element: <LeadsDetails />,
-    route: Route,
-    title: 'Leads Details'
-  },
+ {
+  path: `${route.leadsDetails}/:id`,
+  element: <LeadsDetails />,
+  route: Route,
+  title: 'Leads Details'
+},
   {
     path: route.leads,
     element: <Leads />,
