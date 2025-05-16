@@ -14,7 +14,6 @@ import {
   optionsource,
   optionssymbol,
 } from "../../../core/common/selectoption/selectoption";
-import { leadsData } from "../../../core/data/json/leads";
 import { Modal } from "react-bootstrap";
 import {
   Address,
@@ -63,6 +62,11 @@ const Leads = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 15,
+    total: 0,
+  });
   const [dataLead, setDataLead] = useState<DataLead>({
     id: null,
     action: "insert",
@@ -90,10 +94,16 @@ const Leads = () => {
   });
 
   useEffect(() => {
+    fetchData(pagination.current);
+  }, [isSubmitting, pagination.current]);
+
+  const fetchData = (page = 1) => {
     api
-      .get("/api/lead-data")
+      .get(`/api/lead-data?page=${page}`)
       .then((response) => {
-        const formattedData = response.data.leads.map((lead: any) => ({
+        const leads = response.data.leads;
+        console.log(leads, "lll");
+        const formattedData = response.data.leads.data.map((lead: any) => ({
           action: "update",
           id: lead.id,
           lead_name: lead.lead_name,
@@ -135,14 +145,82 @@ const Leads = () => {
           created_date: new Date(lead.created_at).toLocaleDateString(),
         }));
 
-        console.log(formattedData, "lead");
         setTableData(formattedData);
         setData(formattedData);
+        setPagination({
+          current: leads.current_page,
+          pageSize: leads.per_page,
+          total: leads.total,
+        });
       })
       .catch((error) => {
         console.error("Error fetching leads:", error);
       });
-  }, [, isSubmitting]);
+  };
+
+  const handleTableChange = (pagination: any) => {
+    console.log(pagination, "ppp");
+    setPagination((prev) => ({
+      ...prev,
+      current: pagination.current,
+    }));
+  };
+
+  // useEffect(() => {
+  //   api
+  //     .get("/api/lead-data")
+  //     .then((response) => {
+  //       console.log(response.data,'dddd');
+  //       const formattedData = response.data.leads.data.map((lead: any) => ({
+  //         action: "update",
+  //         id: lead.id,
+  //         lead_name: lead.lead_name,
+  //         company_name: lead.company_name,
+  //         email: lead.email,
+  //         phone1: lead.phone1,
+  //         phone2: lead.phone2,
+  //         website_url: lead.website_url,
+  //         owner_name: lead.owner_name,
+  //         source: lead.source
+  //           ? { label: lead.source, value: lead.source }
+  //           : null,
+  //         industry: lead.industry
+  //           ? { label: lead.industry, value: lead.industry }
+  //           : null,
+  //         currency: lead.currency,
+  //         language: lead.language
+  //           ? { label: lead.language, value: lead.language }
+  //           : null,
+  //         description: lead.description,
+  //         address: {
+  //           street_address: lead.address?.street_address,
+  //           city: lead.address?.city,
+  //           state: lead.address?.state,
+  //           country: lead.address?.country
+  //             ? { label: lead.address.country, value: lead.address.country }
+  //             : null,
+  //           zip_code: lead.address?.zip_code,
+  //         },
+  //         access: lead.access,
+  //         image: lead.image || null,
+
+  //         // 🆕 Extra fields for display (not part of DataLead interface)
+  //         company_address: lead.address
+  //           ? `${lead.address.city}, ${lead.address.state}`
+  //           : "",
+  //         phone: lead.phone1,
+  //         status: lead.status,
+  //         created_date: new Date(lead.created_at).toLocaleDateString(),
+  //       }));
+
+  //       console.log(formattedData, "lead");
+  //       setTableData(formattedData);
+  //       setData(formattedData);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching leads:", error);
+  //     });
+  // }, [, isSubmitting]);
 
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
@@ -1173,7 +1251,12 @@ const Leads = () => {
                     {/* /Filter */}
                     {/* Contact List */}
                     <div className="table-responsive custom-table">
-                      <Table dataSource={data} columns={columns} />
+                      <Table
+                        columns={columns}
+                        dataSource={data}
+                        pagination={pagination}
+                        onChange={handleTableChange}
+                      />
                     </div>
                     <div className="row align-items-center">
                       <div className="col-md-6">

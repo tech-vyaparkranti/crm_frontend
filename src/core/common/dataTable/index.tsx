@@ -3,7 +3,12 @@ import React, { useState } from "react";
 import { Table } from "antd";
 import { DatatableProps } from "../../data/interface"; // Ensure correct path
 
-const Datatable: React.FC<DatatableProps> = ({ columns, dataSource }) => {
+const Datatable: React.FC<DatatableProps> = ({
+  columns,
+  dataSource,
+  pagination,
+  onChange,
+}) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([]);
 
   const onSelectChange = (newSelectedRowKeys: any[]) => {
@@ -21,7 +26,8 @@ const Datatable: React.FC<DatatableProps> = ({ columns, dataSource }) => {
       rowSelection={rowSelection}
       columns={columns}
       dataSource={dataSource}
-       // Assuming `id` is the unique identifier of each record
+      pagination={pagination}
+      onChange={onChange}
     />
   );
 };
