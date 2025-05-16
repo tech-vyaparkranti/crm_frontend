@@ -3,6 +3,12 @@ import ImageWithBasePath from "../../core/common/imageWithBasePath";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../router/all_routes";
 import api from "../../api/api";
+import { GoogleLogin } from '@react-oauth/google';
+ 
+
+ 
+ 
+
  
  
 
@@ -216,9 +222,9 @@ const Register = () => {
                 </h6>
               </div>
 
-              <div className="form-set-login or-text mb-3">
+              {/* <div className="form-set-login or-text mb-3">
                 <h4>OR</h4>
-              </div>
+              </div> */}
 
               <div className="d-flex align-items-center justify-content-center flex-wrap mb-3">
                 {/* <div className="text-center me-2 flex-fill">
@@ -233,7 +239,7 @@ const Register = () => {
                     />
                   </Link>
                 </div> */}
-                <div className="text-center me-2 flex-fill">
+                {/* <div className="text-center me-2 flex-fill">
                   <Link
                     to="#"
                     className="br-10 p-2 px-4 btn bg-white d-flex align-items-center justify-content-center"
@@ -244,7 +250,19 @@ const Register = () => {
                       alt="Google"
                     />
                   </Link>
-                </div>
+                </div> */}
+
+                 {/* google login */}
+
+              {/* <GoogleLogin
+                onSuccess={credentialResponse => {
+                  console.log(credentialResponse);
+                }}
+                onError={() => {
+                  console.log('Login Failed');
+                }}
+              />; */}
+                 {/* google login end  */}
                 {/* <div className="text-center flex-fill">
                   <Link
                     to="#"

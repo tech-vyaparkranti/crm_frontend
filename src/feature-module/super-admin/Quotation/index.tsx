@@ -616,6 +616,7 @@
 
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import BankDetails from "./BankDetails";
 // import "./App.css";
 
 interface ItemRow {
@@ -693,6 +694,18 @@ const Quotation: React.FC = () => {
   const [contactInfo, setContactInfo] = useState(
     "Contact No : +91 941 514 6988"
   );
+
+    const customBankDetails = {
+    accountName: "PRATHMA INOPEX PRIVATE LIMITED",
+    accountNumber: "50200094899965",
+    accountType: "CURRENT ACCOUNT",
+    bankName: "HDFC BANK LTD",
+    ifsc: "HDFC0000438",
+    swiftCode: "HDFCINBBDEL",
+    branch: "THANA ROAD, NAJAFGARH",
+    gst: "07AAOCP7803K1ZX",
+    upiId: "9958224825@pz"
+  };
 
   // State for totals
   const [subtotal, setSubtotal] = useState<number>(0);
@@ -887,6 +900,7 @@ const Quotation: React.FC = () => {
   }, []);
 
   return (
+    <section style={{padding: '50px'}}> 
     <div className="container mt-4 mb-5">
       <form id="quotationForm" onSubmit={handleSubmit}>
         {/* Header */}
@@ -1335,6 +1349,15 @@ const Quotation: React.FC = () => {
           </div>
         </div>
 
+        
+
+        <BankDetails
+        bankDetails={customBankDetails}
+        logo="/path-to-prathma-logo.png"
+      />
+
+         
+
         {/* Action Buttons */}
         <div className="row mt-4 no-print">
           <div className="col-12 text-center">
@@ -1355,6 +1378,7 @@ const Quotation: React.FC = () => {
         </div>
       </form>
     </div>
+    </section>
   );
 };
 

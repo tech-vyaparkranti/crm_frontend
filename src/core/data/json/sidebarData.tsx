@@ -312,6 +312,17 @@ export const SidebarData = [
         showSubRoute: false,
         submenu: false,
       },
+       {
+        label: "Quotation",
+        link: route.quotation,
+        // subLink1: route.activityMeeting,
+        // subLink2: route.activityTask,
+        // subLink3: route.activityMail,
+        // subLink4: route.activityCalls,
+        icon: "ti ti-file-invoice",
+        showSubRoute: false,
+        submenu: false,
+      },
     ],
   },
   {
