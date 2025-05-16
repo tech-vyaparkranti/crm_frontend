@@ -26,6 +26,7 @@ import { SelectWithImage2 } from "../../../core/common/selectWithImage2";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../../api/api";
+import dayjs from "dayjs";
 const route = all_routes;
 
 const LeadsDetails = () => {
@@ -56,7 +57,6 @@ const LeadsDetails = () => {
 
     fetchLead();
   }, [id]);
-
 
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
@@ -110,10 +110,19 @@ const LeadsDetails = () => {
     },
   ];
 
-  const handleStatusChange = (newStatus:any) => {
+  const handleStatusChange = (newStatus: any) => {
     console.log("Selected status:", newStatus);
     // You can send API to update status or update state here
   };
+
+  const statusSteps = [
+    { value: "new", label: "New", className: "bg-primary" },
+    { value: "connected", label: "Connected", className: "bg-info" },
+    { value: "not connected", label: "Not Connected", className: "bg-pending" },
+    { value: "lost", label: "Lost", className: "bg-danger" },
+    { value: "closed", label: "Closed", className: "bg-success" },
+  ];
+
   return (
     <>
       {/* Page Wrapper */}
@@ -197,7 +206,7 @@ const LeadsDetails = () => {
                       <div className="contacts-action">
                         <span className="badge badge-light">
                           <i className="ti ti-lock" />
-                         {lead?.access}
+                          {lead?.access}
                         </span>
                         {/* <div className="dropdown mb-2">
                           <Link
@@ -266,7 +275,11 @@ const LeadsDetails = () => {
                     <ul>
                       <li className="row mb-3">
                         <span className="col-6">Date Created</span>
-                        <span className="col-6">{new Date(lead.created_at).toLocaleDateString()}</span>
+                        <span className="col-6">
+                          {dayjs(lead?.created_at).format(
+                            "DD MMM YYYY, hh:mm a"
+                          )}
+                        </span>
                       </li>
                       {/* <li className="row mb-3">
                         <span className="col-6">Value</span>
@@ -353,7 +366,7 @@ const LeadsDetails = () => {
                       </div>
                     </div>
                     <hr />
-                    <div className="d-flex align-items-center justify-content-between flex-wrap">
+                    {/* <div className="d-flex align-items-center justify-content-between flex-wrap">
                       <h6 className="mb-3 fw-semibold">Contacts</h6>
                       <Link
                         to="#"
@@ -364,7 +377,7 @@ const LeadsDetails = () => {
                         <i className="ti ti-circle-plus me-1" />
                         Add New
                       </Link>
-                    </div>
+                    </div> */}
                     <div className="d-flex align-items-center mb-0">
                       <div className="avatar avatar-md me-2">
                         <img
@@ -378,7 +391,11 @@ const LeadsDetails = () => {
                     <ul>
                       <li className="row mb-3">
                         <span className="col-6">Last Modified</span>
-                        <span className="col-6">10 Jan 2024, 10:00 am</span>
+                        <span className="col-6">
+                          {dayjs(lead?.updated_at).format(
+                            "DD MMM YYYY, hh:mm a"
+                          )}
+                        </span>
                       </li>
                       <li className="row mb-0">
                         <span className="col-6">Modified By</span>
@@ -403,30 +420,27 @@ const LeadsDetails = () => {
                 <div className="card mb-3">
                   <div className="card-body pb-0">
                     <h4 className="fw-semibold mb-3">Lead Pipeline Status</h4>
-                    <div className="pipeline-list">
-                      <ul>
-                        <li>
-                          <Link to="#" className="bg-pending">
-                            Not Contacted
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="bg-info">
-                            Contacted
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="bg-success">
-                            Closed
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="bg-danger">
-                            Lost
-                          </Link>
-                        </li>
-                      </ul>
-                    </div>
+                    {lead && (
+                      <div className="pipeline-list">
+                        <ul>
+                          {statusSteps.map((step) => (
+                            <li key={step.value}>
+                              <Link
+                                to="#"
+                                className={`${step.className} ${
+                                  lead.status === step.value
+                                    ? "active blink"
+                                    : ""
+                                }`}
+                              >
+                                {step.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
                     <ul className="nav nav-tabs nav-tabs-bottom" role="tablist">
                       <li className="nav-item" role="presentation">
                         <Link

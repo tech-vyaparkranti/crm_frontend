@@ -303,9 +303,9 @@ const Leads = () => {
               <i className="ti ti-trash text-danger"></i> Delete
             </Link>
 
-            <Link className="dropdown-item" to="#">
+            {/* <Link className="dropdown-item" to="#">
               <i className="ti ti-clipboard-copy text-blue-light" /> Clone
-            </Link>
+            </Link> */}
           </div>
         </div>
       ),
