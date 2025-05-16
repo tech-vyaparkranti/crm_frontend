@@ -130,9 +130,9 @@ const [form, setForm] = useState<FormData>({
                   </Link>
                 </h6>
               </div>
-              <div className="form-set-login or-text mb-3">
+              {/* <div className="form-set-login or-text mb-3">
                 <h4>OR</h4>
-              </div>
+              </div> */}
               <>
                 <div className="d-flex align-items-center justify-content-center flex-wrap mb-3">
                   {/* <div className="text-center me-2 flex-fill">
@@ -147,7 +147,7 @@ const [form, setForm] = useState<FormData>({
                       />
                     </Link>
                   </div> */}
-                  <div className="text-center me-2 flex-fill">
+                  {/* <div className="text-center me-2 flex-fill">
                     <Link
                       to="#"
                       className="br-10 p-2 px-4 btn bg-white d-flex align-items-center justify-content-center"
@@ -158,7 +158,7 @@ const [form, setForm] = useState<FormData>({
                         alt="Facebook"
                       />
                     </Link>
-                  </div>
+                  </div> */}
                   {/* <div className="text-center flex-fill">
                     <Link
                       to="#"
