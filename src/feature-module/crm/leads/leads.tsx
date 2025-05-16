@@ -16,7 +16,13 @@ import {
 } from "../../../core/common/selectoption/selectoption";
 import { leadsData } from "../../../core/data/json/leads";
 import { Modal } from "react-bootstrap";
-import { LeadTableData, TableData } from "../../../core/data/interface";
+import {
+  Address,
+  DataLead,
+  LeadTableData,
+  SelectOption,
+  TableData,
+} from "../../../core/data/interface";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import CollapseHeader from "../../../core/common/collapse-header";
 import { SelectWithImage2 } from "../../../core/common/selectWithImage2";
@@ -71,6 +77,7 @@ const Leads = () => {
           status: lead.status,
           created_date: new Date(lead.created_at).toLocaleDateString(),
           owner: lead.owner_name,
+          image: lead.image,
         }));
         console.log(formattedData, "lead");
         setTableData(formattedData);
@@ -89,6 +96,7 @@ const Leads = () => {
       [index]: !prevStars[index],
     }));
   };
+
   const columns = [
     {
       title: "",
@@ -192,39 +200,44 @@ const Leads = () => {
         a.company_name.length - b.company_name.length,
     },
     {
-      title: "Action",
-      dataIndex: "action",
-      render: () => (
-        <div className="dropdown table-action">
-          <Link
-            to="#"
-            className="action-icon "
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i className="fa fa-ellipsis-v" />
-          </Link>
-          <div className="dropdown-menu dropdown-menu-right">
-            <Link className="dropdown-item" to="#" onClick={handleShow3}>
-              <i className="ti ti-edit text-blue" /> Edit
-            </Link>
+  title: "Action",
+  dataIndex: "action",
+  render: (_: any, record: any) => (
+    <div className="dropdown table-action">
+      <Link
+        to="#"
+        className="action-icon"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <i className="fa fa-ellipsis-v" />
+      </Link>
+      <div className="dropdown-menu dropdown-menu-right">
+        <Link
+          className="dropdown-item"
+          to="#"
+          onClick={() => handleEdit(record)} // Pass the row data here
+        >
+          <i className="ti ti-edit text-blue" /> Edit
+        </Link>
 
-            <Link
-              className="dropdown-item"
-              to="#"
-              data-bs-toggle="modal"
-              data-bs-target="#delete_lead"
-            >
-              <i className="ti ti-trash text-danger"></i> Delete
-            </Link>
+        <Link
+          className="dropdown-item"
+          to="#"
+          data-bs-toggle="modal"
+          data-bs-target="#delete_lead"
+        >
+          <i className="ti ti-trash text-danger"></i> Delete
+        </Link>
 
-            <Link className="dropdown-item" to="#">
-              <i className="ti ti-clipboard-copy text-blue-light" /> clone
-            </Link>
-          </div>
-        </div>
-      ),
-    },
+        <Link className="dropdown-item" to="#">
+          <i className="ti ti-clipboard-copy text-blue-light" /> Clone
+        </Link>
+      </div>
+    </div>
+  ),
+}
+
   ];
   const initialSettings = {
     endDate: new Date("2020-08-11T12:30:00.000Z"),
@@ -271,6 +284,133 @@ const Leads = () => {
     { value: "Rupee", label: "Rupee" },
   ];
 
+  const [dataLead, setDataLead] = useState<DataLead>({
+    action: "insert",
+    image: null,
+    company_name: "",
+    email: "",
+    phone1: "",
+    phone2: "",
+    website_url: "",
+    owner_name: "",
+    source: null,
+    industry: null,
+    currency: "",
+    language: null,
+    description: "",
+    lead_name:"",
+    address: {
+      street_address: "",
+      city: "",
+      state: "",
+      country: null,
+      zip_code: "",
+    },
+    access: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target;
+
+    if (name.startsWith("address.")) {
+      const key = name.split(".")[1] as keyof Address;
+      setDataLead((prev) => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [key]: value,
+        },
+      }));
+    } else if (type === "file") {
+      const target = e.target as HTMLInputElement;
+      setDataLead((prev) => ({
+        ...prev,
+        [name]: target.files ? target.files[0] : null,
+      }));
+    } else {
+      setDataLead((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleSelectChange = (
+    selectedOption: SelectOption | null,
+    actionMeta: { name?: string }
+  ) => {
+    const name = actionMeta.name as keyof DataLead;
+    setDataLead((prev) => ({
+      ...prev,
+      [name]: selectedOption,
+    }));
+
+    console.log(name, "select");
+  };
+
+  const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData();
+    Object.entries(dataLead).forEach(([key, value]) => {
+      if (key === "address") {
+        Object.entries(value as Address).forEach(([subKey, subValue]) => {
+          if (typeof subValue === "object" && subValue?.value) {
+            data.append(`address[${subKey}]`, subValue.value);
+          } else {
+            data.append(`address[${subKey}]`, subValue as string);
+          }
+        });
+      } else if (value instanceof File) {
+        data.append(key, value);
+      } else if (typeof value === "object" && value?.value) {
+        data.append(key, value.value);
+      } else {
+        data.append(key, value as string);
+      }
+    });
+
+    try {
+      const response = await api.post("/api/lead-save", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setOpenModal(true);
+      setDataLead({
+        action: "insert",
+        image: null,
+        company_name: "",
+        email: "",
+        phone1: "",
+        phone2: "",
+        website_url: "",
+        owner_name: "",
+        source: null,
+        industry: null,
+        currency: "",
+        language: null,
+        description: "",
+        address: {
+          street_address: "",
+          city: "",
+          state: "",
+          country: null,
+          zip_code: "",
+        },
+        access: "",
+        lead_name:"",
+      });
+      handleClose();
+    } catch (error) {
+      console.error("Submission error:", error);
+    }
+  };
+
+  const handleEdit = (record : DataLead) => {
+  setDataLead(record);  
+  setModalTitle("Edit Lead");
+  setShow3(true);
+};
   return (
     <>
       <>
@@ -1274,7 +1414,7 @@ const Leads = () => {
             </button>
           </div>
           <div className="offcanvas-body">
-            <form>
+            <form onSubmit={handleLeadSubmit}>
               <div className="accordion" id="main_accordion">
                 {/* Basic Info */}
                 <div className="accordion-item rounded mb-3">
@@ -1321,7 +1461,12 @@ const Leads = () => {
                                 <label className="profile-upload-btn">
                                   <i className="ti ti-file-broken" /> Upload
                                   File
-                                  <input type="file" className="input-img" name="image" />
+                                  <input
+                                    type="file"
+                                    className="input-img"
+                                    name="image"
+                                    onChange={handleChange}
+                                  />
                                 </label>
                                 <p>JPG, GIF or PNG. Max size of 2 MB</p>
                               </div>
@@ -1333,7 +1478,13 @@ const Leads = () => {
                             <label className="col-form-label">
                               Company Name
                             </label>
-                            <input type="text" className="form-control" name="company_name"/>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="company_name"
+                              value={dataLead.company_name || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-12">
@@ -1352,11 +1503,18 @@ const Leads = () => {
                                   className="check"
                                   defaultChecked
                                   name="email"
+                                  onChange={handleChange}
                                 />
                                 <label htmlFor="user" className="checktoggle" />
                               </div>
                             </div>
-                            <input type="text" className="form-control" name="email"/>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="email"
+                              value={dataLead.email || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1364,13 +1522,25 @@ const Leads = () => {
                             <label className="col-form-label">
                               Phone 1 <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" name="phone1" />
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="phone1"
+                              value={dataLead.phone1 || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">Phone 2</label>
-                            <input type="text" className="form-control" name="phone2"/>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="phone2"
+                              value={dataLead.phone2 || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         {/* <div className="col-md-6">
@@ -1386,24 +1556,33 @@ const Leads = () => {
                             <label className="col-form-label">
                               Website <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" name="website_url"/>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="website_url"
+                              value={dataLead.website_url || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
-                        {/* <div className="col-md-6">
+                        <div className="col-md-6">
                           <div className="mb-3">
-                            <label className="col-form-label">Ratings</label>
+                            <label className="col-form-label">Lead Name</label>
                             <div className="icon-form-end">
                               <span className="form-icon">
-                                <i className="ti ti-star" />
+                                <i className="ti ti-person" />
                               </span>
                               <input
                                 type="text"
                                 className="form-control"
-                                placeholder="4.2"
+                                placeholder="Lead Name"
+                                name="lead_name"
+                                value={dataLead.lead_name || ''}
+                                onChange={handleChange}
                               />
                             </div>
                           </div>
-                        </div> */}
+                        </div>
                         {/* <div className="col-md-6">
                           <div className="fmb-3">
                             <label className="col-form-label">Owner</label>
@@ -1433,10 +1612,17 @@ const Leads = () => {
                             <label className="col-form-label">
                               Owner Name <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" name="owner_name"/>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="owner_name"
+                              onChange={handleChange}
+                              value={dataLead.owner_name || ''}
+
+                            />
                           </div>
                         </div>
-                         {/*<div className="col-md-6">
+                        {/*<div className="col-md-6">
                           <div className="mb-3">
                             <div className="d-flex align-items-center justify-content-between">
                               <label className="col-form-label">Deals</label>
@@ -1458,7 +1644,9 @@ const Leads = () => {
                               className="select2"
                               options={optionsource}
                               classNamePrefix="react-select"
-                              name=""
+                              name="source"
+                              value={dataLead.source}
+                              onChange={handleSelectChange}
                             />
                           </div>
                         </div>
@@ -1471,6 +1659,9 @@ const Leads = () => {
                               className="select2"
                               options={optionindustry}
                               classNamePrefix="react-select"
+                              name="industry"
+                              value={dataLead.industry}
+                              onChange={handleSelectChange}
                             />
                           </div>
                         </div>
@@ -1481,20 +1672,26 @@ const Leads = () => {
                           </div>
                         </div> */}
 
-                        <div className="col-md-6">
+                        {/* <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
                               Contacts <span className="text-danger">*</span>
                             </label>
                             <input type="text" className="form-control" />
                           </div>
-                        </div>
+                        </div> */}
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">
                               Currency <span className="text-danger">*</span>
                             </label>
-                            <input type="text" className="form-control" name="currency"/>
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="currency"
+                              value={dataLead.currency || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1505,6 +1702,9 @@ const Leads = () => {
                             <Select
                               className="select"
                               options={languageOptions}
+                              name="language"
+                              value={dataLead.language}
+                              onChange={handleSelectChange}
                             />
                           </div>
                         </div>
@@ -1517,6 +1717,9 @@ const Leads = () => {
                               className="form-control"
                               rows={5}
                               defaultValue={""}
+                              name="description"
+                              value={dataLead.description || ''}
+                              onChange={handleChange}
                             />
                           </div>
                         </div>
@@ -1552,13 +1755,25 @@ const Leads = () => {
                             <label className="col-form-label">
                               Street Address{" "}
                             </label>
-                            <input type="text" className="form-control" />
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="address.street_address"
+                              value={dataLead.address?.street_address || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-6">
                           <div className="mb-3">
                             <label className="col-form-label">City </label>
-                            <input type="text" className="form-control" />
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="address.city"
+                              value={dataLead.address?.city || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1566,7 +1781,13 @@ const Leads = () => {
                             <label className="col-form-label">
                               State / Province{" "}
                             </label>
-                            <input type="text" className="form-control" />
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="address.state"
+                              value={dataLead.address?.state || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                         <div className="col-md-6">
@@ -1575,13 +1796,34 @@ const Leads = () => {
                             <Select
                               className="select"
                               options={countryoptions1}
+                              name="address.country"
+                              value={countryoptions1.find(
+                                (option) =>
+                                  option.value ===
+                                  dataLead.address.country?.value
+                              )}
+                              onChange={(selectedOption) => {
+                                setDataLead((prev) => ({
+                                  ...prev,
+                                  address: {
+                                    ...prev.address,
+                                    country: selectedOption,
+                                  },
+                                }));
+                              }}
                             />
                           </div>
                         </div>
                         <div className="col-md-6">
                           <div className="mb-0">
                             <label className="col-form-label">Zipcode </label>
-                            <input type="text" className="form-control" />
+                            <input
+                              type="text"
+                              className="form-control"
+                              name="address.zip_code"
+                              value={dataLead.address?.zip_code || ''}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                       </div>
@@ -1683,7 +1925,8 @@ const Leads = () => {
                                   type="radio"
                                   className="status-radio"
                                   id="public"
-                                  name="visible"
+                                  name="access"
+                                  value="visible"
                                 />
                                 <label htmlFor="public">Public</label>
                               </div>
@@ -1692,7 +1935,8 @@ const Leads = () => {
                                   type="radio"
                                   className="status-radio"
                                   id="private"
-                                  name="visible"
+                                  value="private"
+                                  name="access"
                                 />
                                 <label htmlFor="private">Private</label>
                               </div>
@@ -1704,13 +1948,14 @@ const Leads = () => {
                                   type="radio"
                                   className="status-radio"
                                   id="people"
-                                  name="visible"
+                                  name="access"
+                                  value=""
                                 />
                                 <label htmlFor="people">Select People</label>
                               </div>
                             </div>
                           </div>
-                          <div className="mb-0">
+                          {/* <div className="mb-0">
                             <label className="col-form-label">Status</label>
                             <div className="d-flex flex-wrap">
                               <div className="me-2">
@@ -1733,7 +1978,7 @@ const Leads = () => {
                                 <label htmlFor="inactive">Inactive</label>
                               </div>
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </div>
@@ -1749,11 +1994,7 @@ const Leads = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setOpenModal(true)}
-                >
+                <button type="submit" className="btn btn-primary">
                   Create
                 </button>
               </div>
@@ -2106,7 +2347,7 @@ const Leads = () => {
               </div>
               <h3>Company Created Successfully!!!</h3>
               <p>View the details of company, created</p>
-              <div className="col-lg-12 text-center modal-btn">
+              {/* <div className="col-lg-12 text-center modal-btn">
                 <Link to="#" className="btn btn-light" data-bs-dismiss="modal">
                   Cancel
                 </Link>
@@ -2117,7 +2358,7 @@ const Leads = () => {
                 >
                   View Details
                 </Link>
-              </div>
+              </div> */}
             </div>
           </div>
         </Modal>

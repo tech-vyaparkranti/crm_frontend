@@ -127,4 +127,38 @@ export interface LeadTableData {
   status: string;
   created_date: string;
   owner: string;
+  image:string;
 }
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export interface Address {
+  street_address: string;
+  city: string;
+  state: string;
+  country: SelectOption | null;
+  zip_code: string;
+}
+
+export interface DataLead {
+  action:string;
+  image: File | null;
+  company_name: string;
+  email: string;
+  phone1: string;
+  phone2: string;
+  website_url: string;
+  owner_name: string;
+  source: SelectOption | null;
+  industry: SelectOption | null;
+  currency: string;
+  language: SelectOption | null;
+  description: string;
+  address: Address;
+  access: string;
+  lead_name:string;
+}
+
