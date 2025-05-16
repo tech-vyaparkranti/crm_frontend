@@ -264,10 +264,10 @@ const LeadsDetails = () => {
                   <div className="card-body p-3">
                     <h6 className="mb-3 fw-semibold">Lead Information</h6>
                     <ul>
-                      <li className="row mb-3">
+                      {/* <li className="row mb-3">
                         <span className="col-6">Date Created</span>
                         <span className="col-6">{new Date(lead.created_at).toLocaleDateString()}</span>
-                      </li>
+                      </li> */}
                       {/* <li className="row mb-3">
                         <span className="col-6">Value</span>
                         <span className="col-6">$25,11,145</span>

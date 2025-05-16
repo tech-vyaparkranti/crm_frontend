@@ -164,6 +164,27 @@ const Leads = () => {
     }
   };
 
+  const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    await api.post("/api/leads/upload-csv", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    alert("Leads uploaded successfully.");
+    setIsSubmitting(true); // Refresh leads table
+  } catch (error) {
+    console.error("CSV Upload Failed:", error);
+    alert("CSV upload failed. Check the console for more info.");
+  }
+};
+
   const columns = [
     {
       title: "",
@@ -528,6 +549,19 @@ const Leads = () => {
                               </ul>
                             </div>
                           </div>
+                          <div className="me-2">
+  <label htmlFor="csvUpload" className="btn btn-outline-primary">
+    <i className="ti ti-upload me-2" />
+    Upload CSV
+  </label>
+  <input
+    type="file"
+    id="csvUpload"
+    accept=".csv"
+    onChange={handleCsvUpload}
+    style={{ display: "none" }}
+  />
+</div>
                           <Link
                             to="#"
                             className="btn btn-primary"
