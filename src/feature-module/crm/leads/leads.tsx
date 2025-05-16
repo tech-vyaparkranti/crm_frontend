@@ -110,18 +110,18 @@ const Leads = () => {
         </div>
       ),
     },
-    {
-      title: "Lead Name",
-      dataIndex: "lead_name",
-      key: "lead_name",
-      render: (text: any) => (
-        <Link to={route.leadsDetails} className="title-name">
-          {text}
-        </Link>
-      ),
-      sorter: (a: LeadTableData, b: LeadTableData) =>
-        a.lead_name.length - b.lead_name.length,
-    },
+   {
+  title: "Lead Name",
+  dataIndex: "lead_name",
+  key: "lead_name",
+  render: (text: any, record: any) => (
+    <Link to={`${route.leadsDetails}/${record.id}`} className="title-name">
+      {text}
+    </Link>
+  ),
+  sorter: (a: LeadTableData, b: LeadTableData) =>
+    a.lead_name.length - b.lead_name.length,
+},
 
     {
       title: "Company Name",

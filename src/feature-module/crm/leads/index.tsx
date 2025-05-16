@@ -17,13 +17,39 @@ import DefaultEditor from "react-simple-wysiwyg";
 import { Modal } from 'react-bootstrap';
 import { accountType, ascendingandDecending, documentType, LocaleData, statusList } from "../../../core/common/selectoption/selectoption";
 import { SelectWithImage2 } from "../../../core/common/selectWithImage2";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect} from "react";
+import api from "../../../api/api";
 const route = all_routes;
+
+
 const LeadsDetails = () => {
-  const data = leadsData;
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [lead, setLead] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [addcomment, setAddComment] = useState(false);
+
   const togglecomment = () => {
     setAddComment((prevState) => !prevState);
   };
+
+  useEffect(() => {
+    const fetchLead = async () => {
+      try {
+        const response = await api.get(`/lead-data/${id}`); // Make sure this route returns a single lead
+        setLead(response.data.lead); // Adjust based on your API response
+      } catch (error) {
+        console.error("Error fetching lead", error);
+        navigate("/leads"); // fallback if lead doesn't exist
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLead();
+  }, [id]);
+
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
   const initializeStarsState = () => {
