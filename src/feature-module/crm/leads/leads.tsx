@@ -61,10 +61,10 @@ const Leads = () => {
   const [tableData, setTableData] = useState<LeadTableData[]>([]);
   const [data, setData] = useState([]); // state to hold leads
 
-  const [isSubmitting ,setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [dataLead, setDataLead] = useState<DataLead>({
-     id: null,
+    id: null,
     action: "insert",
     image: null,
     company_name: "",
@@ -88,15 +88,14 @@ const Leads = () => {
     },
     access: "",
   });
-  
 
   useEffect(() => {
     api
       .get("/api/lead-data")
       .then((response) => {
         const formattedData = response.data.leads.map((lead: any) => ({
-          action:"update",
-          id:lead.id,
+          action: "update",
+          id: lead.id,
           lead_name: lead.lead_name,
           company_name: lead.company_name,
           email: lead.email,
@@ -134,7 +133,6 @@ const Leads = () => {
           phone: lead.phone1,
           status: lead.status,
           created_date: new Date(lead.created_at).toLocaleDateString(),
-
         }));
 
         console.log(formattedData, "lead");
@@ -144,7 +142,7 @@ const Leads = () => {
       .catch((error) => {
         console.error("Error fetching leads:", error);
       });
-  }, [ ,isSubmitting]);
+  }, [, isSubmitting]);
 
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
@@ -164,9 +162,7 @@ const Leads = () => {
       alert("Failed to delete the lead.");
       console.error(error);
     }
-  
-};
-
+  };
 
   const columns = [
     {
@@ -181,18 +177,18 @@ const Leads = () => {
         </div>
       ),
     },
-   {
-  title: "Lead Name",
-  dataIndex: "lead_name",
-  key: "lead_name",
-  render: (text: any, record: any) => (
-    <Link to={`${route.leadsDetails}/${record.id}`} className="title-name">
-      {text}
-    </Link>
-  ),
-  sorter: (a: LeadTableData, b: LeadTableData) =>
-    a.lead_name.length - b.lead_name.length,
-},
+    {
+      title: "Lead Name",
+      dataIndex: "lead_name",
+      key: "lead_name",
+      render: (text: any, record: any) => (
+        <Link to={`${route.leadsDetails}/${record.id}`} className="title-name">
+          {text}
+        </Link>
+      ),
+      sorter: (a: LeadTableData, b: LeadTableData) =>
+        a.lead_name.length - b.lead_name.length,
+    },
 
     {
       title: "Company Name",
@@ -209,10 +205,11 @@ const Leads = () => {
               alt="User Image"
             />
           </Link>
-          <Link 
-          // to={route.companyDetails} 
-          to="#"
-          className="d-flex flex-column">
+          <Link
+            // to={route.companyDetails}
+            to="#"
+            className="d-flex flex-column"
+          >
             {record.company_name}
             <span className="text-default">{text.company_address} </span>
           </Link>
@@ -359,8 +356,6 @@ const Leads = () => {
     { value: "Rupee", label: "Rupee" },
   ];
 
-  
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -451,10 +446,10 @@ const Leads = () => {
         },
         access: "",
         lead_name: "",
-         id: null,
+        id: null,
       });
-      handleClose();
       setIsSubmitting(true);
+      handleClose();
     } catch (error) {
       console.error("Submission error:", error);
     }
@@ -1485,7 +1480,7 @@ const Leads = () => {
                       Basic Info
                     </Link>
                   </div>
-                  <input hidden name="id" value={dataLead?.id || ''}/>
+                  <input hidden name="id" value={dataLead?.id || ""} />
                   <div
                     className="accordion-collapse collapse show"
                     id="basic"
@@ -1493,45 +1488,45 @@ const Leads = () => {
                   >
                     <div className="accordion-body border-top">
                       <div className="row">
-                        {
-                          dataLead.action == "insert" && <div className="col-md-12">
-                          <div className="mb-3">
-                            <div className="profile-upload">
-                              <div className="profile-upload-img">
-                                <span>
-                                  <i className="ti ti-photo" />
-                                </span>
-                                <ImageWithBasePath
-                                  // src={`${dataLead.image}`}
-                                  src="assets/img/profiles/avatar-20.jpg"
-                                  alt="img"
-                                  className="preview1"
-                                />
-                                <button
-                                  type="button"
-                                  className="profile-remove"
-                                >
-                                  <i className="ti ti-x" />
-                                </button>
-                              </div>
-                              <div className="profile-upload-content">
-                                <label className="profile-upload-btn">
-                                  <i className="ti ti-file-broken" /> Upload
-                                  File
-                                  <input
-                                    type="file"
-                                    className="input-img"
-                                    name="image"
-                                    onChange={handleChange}
+                        {dataLead.action == "insert" && (
+                          <div className="col-md-12">
+                            <div className="mb-3">
+                              <div className="profile-upload">
+                                <div className="profile-upload-img">
+                                  <span>
+                                    <i className="ti ti-photo" />
+                                  </span>
+                                  <ImageWithBasePath
+                                    // src={`${dataLead.image}`}
+                                    src="assets/img/profiles/avatar-20.jpg"
+                                    alt="img"
+                                    className="preview1"
                                   />
-                                </label>
-                                <p>JPG, GIF or PNG. Max size of 2 MB</p>
+                                  <button
+                                    type="button"
+                                    className="profile-remove"
+                                  >
+                                    <i className="ti ti-x" />
+                                  </button>
+                                </div>
+                                <div className="profile-upload-content">
+                                  <label className="profile-upload-btn">
+                                    <i className="ti ti-file-broken" /> Upload
+                                    File
+                                    <input
+                                      type="file"
+                                      className="input-img"
+                                      name="image"
+                                      onChange={handleChange}
+                                    />
+                                  </label>
+                                  <p>JPG, GIF or PNG. Max size of 2 MB</p>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        }
-                        
+                        )}
+
                         <div className="col-md-12">
                           <div className="mb-3">
                             <label className="col-form-label">
@@ -2344,12 +2339,11 @@ const Leads = () => {
                       data-bs-dismiss="modal"
                       className="btn btn-danger"
                       onClick={() => {
-                          if (deleteId !== null) {
-                            leadDelete(deleteId);
-                          }
-                        }}
-                      >
-                    
+                        if (deleteId !== null) {
+                          leadDelete(deleteId);
+                        }
+                      }}
+                    >
                       Yes, Delete it
                     </Link>
                   </div>
