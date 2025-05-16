@@ -61,24 +61,82 @@ const Leads = () => {
   const [tableData, setTableData] = useState<LeadTableData[]>([]);
   const [data, setData] = useState([]); // state to hold leads
 
+  const [isSubmitting ,setIsSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [dataLead, setDataLead] = useState<DataLead>({
+     id: null,
+    action: "insert",
+    image: null,
+    company_name: "",
+    email: "",
+    phone1: "",
+    phone2: "",
+    website_url: "",
+    owner_name: "",
+    source: null,
+    industry: null,
+    currency: "",
+    language: null,
+    description: "",
+    lead_name: "",
+    address: {
+      street_address: "",
+      city: "",
+      state: "",
+      country: null,
+      zip_code: "",
+    },
+    access: "",
+  });
+  
+
   useEffect(() => {
     api
       .get("/api/lead-data")
       .then((response) => {
         const formattedData = response.data.leads.map((lead: any) => ({
-          id: lead.id,
+          action:"update",
+          id:lead.id,
           lead_name: lead.lead_name,
           company_name: lead.company_name,
+          email: lead.email,
+          phone1: lead.phone1,
+          phone2: lead.phone2,
+          website_url: lead.website_url,
+          owner_name: lead.owner_name,
+          source: lead.source
+            ? { label: lead.source, value: lead.source }
+            : null,
+          industry: lead.industry
+            ? { label: lead.industry, value: lead.industry }
+            : null,
+          currency: lead.currency,
+          language: lead.language
+            ? { label: lead.language, value: lead.language }
+            : null,
+          description: lead.description,
+          address: {
+            street_address: lead.address?.street_address,
+            city: lead.address?.city,
+            state: lead.address?.state,
+            country: lead.address?.country
+              ? { label: lead.address.country, value: lead.address.country }
+              : null,
+            zip_code: lead.address?.zip_code,
+          },
+          access: lead.access,
+          image: lead.image || null,
+
+          // 🆕 Extra fields for display (not part of DataLead interface)
           company_address: lead.address
             ? `${lead.address.city}, ${lead.address.state}`
             : "",
           phone: lead.phone1,
-          email: lead.email,
           status: lead.status,
           created_date: new Date(lead.created_at).toLocaleDateString(),
-          owner: lead.owner_name,
-          image: lead.image,
+
         }));
+
         console.log(formattedData, "lead");
         setTableData(formattedData);
         setData(formattedData);
@@ -86,7 +144,7 @@ const Leads = () => {
       .catch((error) => {
         console.error("Error fetching leads:", error);
       });
-  }, []);
+  }, [ ,isSubmitting]);
 
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
@@ -96,6 +154,19 @@ const Leads = () => {
       [index]: !prevStars[index],
     }));
   };
+
+  const leadDelete = async (id: number) => {
+    try {
+      await api.delete(`/api/lead-delete/${id}`);
+      alert("Lead deleted successfully.");
+      setIsSubmitting(true);
+    } catch (error) {
+      alert("Failed to delete the lead.");
+      console.error(error);
+    }
+  
+};
+
 
   const columns = [
     {
@@ -128,16 +199,20 @@ const Leads = () => {
       render: (text: any, record: any) => (
         <h2 className="d-flex align-items-center">
           <Link
-            to={route.companyDetails}
+            // to={route.companyDetails}
+            to="#"
             className="avatar avatar-sm border rounded p-1 me-2"
           >
             <ImageWithBasePath
-              className="w-auto h-auto"
+              className="w-auto h-auto "
               src={record.image}
               alt="User Image"
             />
           </Link>
-          <Link to={route.companyDetails} className="d-flex flex-column">
+          <Link 
+          // to={route.companyDetails} 
+          to="#"
+          className="d-flex flex-column">
             {record.company_name}
             <span className="text-default">{text.company_address} </span>
           </Link>
@@ -194,50 +269,50 @@ const Leads = () => {
     },
     {
       title: "Lead Owner",
-      dataIndex: "owner",
-      key: "owner",
+      dataIndex: "owner_name",
+      key: "owner_name",
       sorter: (a: LeadTableData, b: LeadTableData) =>
         a.company_name.length - b.company_name.length,
     },
     {
-  title: "Action",
-  dataIndex: "action",
-  render: (_: any, record: any) => (
-    <div className="dropdown table-action">
-      <Link
-        to="#"
-        className="action-icon"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        <i className="fa fa-ellipsis-v" />
-      </Link>
-      <div className="dropdown-menu dropdown-menu-right">
-        <Link
-          className="dropdown-item"
-          to="#"
-          onClick={() => handleEdit(record)} // Pass the row data here
-        >
-          <i className="ti ti-edit text-blue" /> Edit
-        </Link>
+      title: "Action",
+      dataIndex: "action",
+      render: (_: any, record: any) => (
+        <div className="dropdown table-action">
+          <Link
+            to="#"
+            className="action-icon"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="fa fa-ellipsis-v" />
+          </Link>
+          <div className="dropdown-menu dropdown-menu-right">
+            <Link
+              className="dropdown-item"
+              to="#"
+              onClick={() => handleEdit(record)} // Pass the row data here
+            >
+              <i className="ti ti-edit text-blue" /> Edit
+            </Link>
 
-        <Link
-          className="dropdown-item"
-          to="#"
-          data-bs-toggle="modal"
-          data-bs-target="#delete_lead"
-        >
-          <i className="ti ti-trash text-danger"></i> Delete
-        </Link>
+            <Link
+              className="dropdown-item"
+              to="#"
+              data-bs-toggle="modal"
+              data-bs-target="#delete_lead"
+              onClick={() => setDeleteId(record.id)}
+            >
+              <i className="ti ti-trash text-danger"></i> Delete
+            </Link>
 
-        <Link className="dropdown-item" to="#">
-          <i className="ti ti-clipboard-copy text-blue-light" /> Clone
-        </Link>
-      </div>
-    </div>
-  ),
-}
-
+            <Link className="dropdown-item" to="#">
+              <i className="ti ti-clipboard-copy text-blue-light" /> Clone
+            </Link>
+          </div>
+        </div>
+      ),
+    },
   ];
   const initialSettings = {
     endDate: new Date("2020-08-11T12:30:00.000Z"),
@@ -284,30 +359,7 @@ const Leads = () => {
     { value: "Rupee", label: "Rupee" },
   ];
 
-  const [dataLead, setDataLead] = useState<DataLead>({
-    action: "insert",
-    image: null,
-    company_name: "",
-    email: "",
-    phone1: "",
-    phone2: "",
-    website_url: "",
-    owner_name: "",
-    source: null,
-    industry: null,
-    currency: "",
-    language: null,
-    description: "",
-    lead_name:"",
-    address: {
-      street_address: "",
-      city: "",
-      state: "",
-      country: null,
-      zip_code: "",
-    },
-    access: "",
-  });
+  
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -398,19 +450,21 @@ const Leads = () => {
           zip_code: "",
         },
         access: "",
-        lead_name:"",
+        lead_name: "",
+         id: null,
       });
       handleClose();
+      setIsSubmitting(true);
     } catch (error) {
       console.error("Submission error:", error);
     }
   };
 
-  const handleEdit = (record : DataLead) => {
-  setDataLead(record);  
-  setModalTitle("Edit Lead");
-  setShow3(true);
-};
+  const handleEdit = (record: any) => {
+    setDataLead(record);
+    setModalTitle("Edit Lead");
+    setShow(true);
+  };
   return (
     <>
       <>
@@ -1403,7 +1457,7 @@ const Leads = () => {
         {/* Add Company */}
         <Offcanvas show={show} onHide={handleClose} placement="end">
           <div className="offcanvas-header border-bottom">
-            <h5 className="fw-semibold">Add New Companys</h5>
+            <h5 className="fw-semibold">Add/Update Leads</h5>
             <button
               type="button"
               className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
@@ -1431,6 +1485,7 @@ const Leads = () => {
                       Basic Info
                     </Link>
                   </div>
+                  <input hidden name="id" value={dataLead?.id || ''}/>
                   <div
                     className="accordion-collapse collapse show"
                     id="basic"
@@ -1438,7 +1493,8 @@ const Leads = () => {
                   >
                     <div className="accordion-body border-top">
                       <div className="row">
-                        <div className="col-md-12">
+                        {
+                          dataLead.action == "insert" && <div className="col-md-12">
                           <div className="mb-3">
                             <div className="profile-upload">
                               <div className="profile-upload-img">
@@ -1446,6 +1502,7 @@ const Leads = () => {
                                   <i className="ti ti-photo" />
                                 </span>
                                 <ImageWithBasePath
+                                  // src={`${dataLead.image}`}
                                   src="assets/img/profiles/avatar-20.jpg"
                                   alt="img"
                                   className="preview1"
@@ -1473,6 +1530,8 @@ const Leads = () => {
                             </div>
                           </div>
                         </div>
+                        }
+                        
                         <div className="col-md-12">
                           <div className="mb-3">
                             <label className="col-form-label">
@@ -1482,7 +1541,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="company_name"
-                              value={dataLead.company_name || ''}
+                              value={dataLead.company_name || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1512,7 +1571,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="email"
-                              value={dataLead.email || ''}
+                              value={dataLead.email || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1526,7 +1585,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="phone1"
-                              value={dataLead.phone1 || ''}
+                              value={dataLead.phone1 || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1538,7 +1597,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="phone2"
-                              value={dataLead.phone2 || ''}
+                              value={dataLead.phone2 || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1560,7 +1619,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="website_url"
-                              value={dataLead.website_url || ''}
+                              value={dataLead.website_url || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1577,7 +1636,7 @@ const Leads = () => {
                                 className="form-control"
                                 placeholder="Lead Name"
                                 name="lead_name"
-                                value={dataLead.lead_name || ''}
+                                value={dataLead.lead_name || ""}
                                 onChange={handleChange}
                               />
                             </div>
@@ -1617,8 +1676,7 @@ const Leads = () => {
                               className="form-control"
                               name="owner_name"
                               onChange={handleChange}
-                              value={dataLead.owner_name || ''}
-
+                              value={dataLead.owner_name || ""}
                             />
                           </div>
                         </div>
@@ -1689,7 +1747,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="currency"
-                              value={dataLead.currency || ''}
+                              value={dataLead.currency || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1718,7 +1776,7 @@ const Leads = () => {
                               rows={5}
                               defaultValue={""}
                               name="description"
-                              value={dataLead.description || ''}
+                              value={dataLead.description || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1759,7 +1817,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="address.street_address"
-                              value={dataLead.address?.street_address || ''}
+                              value={dataLead.address?.street_address || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1771,7 +1829,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="address.city"
-                              value={dataLead.address?.city || ''}
+                              value={dataLead.address?.city || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1785,7 +1843,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="address.state"
-                              value={dataLead.address?.state || ''}
+                              value={dataLead.address?.state || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -1800,7 +1858,7 @@ const Leads = () => {
                               value={countryoptions1.find(
                                 (option) =>
                                   option.value ===
-                                  dataLead.address.country?.value
+                                  dataLead.address?.country?.value
                               )}
                               onChange={(selectedOption) => {
                                 setDataLead((prev) => ({
@@ -1821,7 +1879,7 @@ const Leads = () => {
                               type="text"
                               className="form-control"
                               name="address.zip_code"
-                              value={dataLead.address?.zip_code || ''}
+                              value={dataLead.address?.zip_code || ""}
                               onChange={handleChange}
                             />
                           </div>
@@ -2285,7 +2343,13 @@ const Leads = () => {
                       to="#"
                       data-bs-dismiss="modal"
                       className="btn btn-danger"
-                    >
+                      onClick={() => {
+                          if (deleteId !== null) {
+                            leadDelete(deleteId);
+                          }
+                        }}
+                      >
+                    
                       Yes, Delete it
                     </Link>
                   </div>

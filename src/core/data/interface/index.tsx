@@ -160,5 +160,6 @@ export interface DataLead {
   address: Address;
   access: string;
   lead_name:string;
+   id: null;
 }
 
