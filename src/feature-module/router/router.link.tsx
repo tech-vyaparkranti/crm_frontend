@@ -201,6 +201,7 @@ import Domain from "../super-admin/domin";
 import PurchaseTransaction from "../super-admin/purchase-transaction";
 import LayoutDemo from "../mainMenu/layout-dashoard";
 import PrivateRoute from "./protectedRoute";
+import Quotation from "../super-admin/Quotation";
 
 const route = all_routes;
 
@@ -450,12 +451,12 @@ export const publicRoutes = [
   {
     path: route.localization, element: <Localization />, route: Route, title: 'Localization'
   },
-  {
-    path: route.leadsDetails,
-    element: <LeadsDetails />,
-    route: Route,
-    title: 'Leads Details'
-  },
+ {
+  path: `${route.leadsDetails}/:id`,
+  element: <LeadsDetails />,
+  route: Route,
+  title: 'Leads Details'
+},
   {
     path: route.leads,
     element: <Leads />,
@@ -1415,6 +1416,12 @@ export const publicRoutes = [
     element: <LayoutDemo />,
     route: Route,
     title: "Layout Dark",
+  },
+   {
+    path: route.quotation,
+    element: <Quotation/>,
+    route: Route,
+    title: 'Quotation'
   },
 ];
 

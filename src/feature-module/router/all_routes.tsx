@@ -143,6 +143,7 @@ export const all_routes = {
   dataTable: "/tables-basic",
   tableBasic: "/data-tables",
   iconicIcon: "/icon-ionic",
+  quotation: "/quotation",
 
   //base-ui
   uiAlerts: "/ui-alerts",
