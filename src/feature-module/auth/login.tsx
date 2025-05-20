@@ -9,42 +9,52 @@ const Login = () => {
   const [isPasswordVisible, setPasswordVisible] = useState(false);
 
   type FormData = {
-  password: string;
-  email: string;
-  [key: string]: string; // for dynamic keys
-};
+    password: string;
+    email: string;
+    [key: string]: string;
+  };
 
-const [form, setForm] = useState<FormData>({
-  password: '',
-  email: ''
-});
+  const [form, setForm] = useState<FormData>({
+    password: '',
+    email: ''
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
-    ...prev,
-    [e.target.name]: e.target.value,
-  }));
-  }
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   const togglePasswordVisibility = () => {
     setPasswordVisible((prevState) => !prevState);
   };
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-       const response = await api.post("/api/login", form);
+      const response = await api.post("/api/login", form);
+      const { token, user } = response.data;
+
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("token", token);
+      localStorage.setItem("userRole", user.role); // ✅ Save user role
+      localStorage.setItem("userDesignation", user.designation); 
+      localStorage.setItem("userData", JSON.stringify(user));
+
       navigate(route.dealsDashboard);
     } catch (error: any) {
-      console.error("Registration failed:", error.response?.data);
+      console.error("Login failed:", error.response?.data);
       alert("Login failed. Please check your credentials.");
     }
-  }
+  };
+
   useEffect(() => {
     localStorage.setItem("menuOpened", "Dashboard");
   }, []);
+
   return (
     <div className="account-content">
       <div className="d-flex flex-wrap w-100 vh-100 overflow-hidden account-bg-01">
@@ -68,7 +78,12 @@ const [form, setForm] = useState<FormData>({
                   <span className="input-icon-addon">
                     <i className="ti ti-mail"></i>
                   </span>
-                  <input type="text" className="form-control" name="email" onChange={handleChange}/>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="email"
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
               <div className="mb-3">
@@ -77,13 +92,11 @@ const [form, setForm] = useState<FormData>({
                   <input
                     type={isPasswordVisible ? "text" : "password"}
                     className="pass-input form-control"
-                    name = "password"
+                    name="password"
                     onChange={handleChange}
                   />
                   <span
-                    className={`ti toggle-password ${
-                      isPasswordVisible ? "ti-eye" : "ti-eye-off"
-                    }`}
+                    className={`ti toggle-password ${isPasswordVisible ? "ti-eye" : "ti-eye-off"}`}
                     onClick={togglePasswordVisibility}
                   ></span>
                 </div>
@@ -93,7 +106,6 @@ const [form, setForm] = useState<FormData>({
                   <input
                     className="form-check-input"
                     type="checkbox"
-                    value=""
                     id="checkebox-md"
                     defaultChecked
                   />
@@ -102,80 +114,27 @@ const [form, setForm] = useState<FormData>({
                   </label>
                 </div>
                 <div className="text-end">
-                  <Link
-                    to={route.forgotPassword}
-                    className="text-primary fw-medium link-hover"
-                  >
+                  <Link to={route.forgotPassword} className="text-primary fw-medium link-hover">
                     Forgot Password?
                   </Link>
                 </div>
               </div>
               <div className="mb-3">
-                {/* <Link
-                  to={route.dealsDashboard}
-                  className="btn btn-primary w-100"
-                >
+                <button type="submit" className="btn btn-primary w-100">
                   Sign In
-                </Link> */}
-                  <button type="submit" className="btn btn-primary w-100">
-                    Sign In
-                  </button>
+                </button>
               </div>
               <div className="mb-3">
                 <h6>
                   New on our platform?
                   <Link to={route.register} className="text-purple link-hover">
-                    {" "}
-                    Create an account
+                    {" "}Create an account
                   </Link>
                 </h6>
               </div>
-              {/* <div className="form-set-login or-text mb-3">
-                <h4>OR</h4>
-              </div> */}
-              <>
-                <div className="d-flex align-items-center justify-content-center flex-wrap mb-3">
-                  {/* <div className="text-center me-2 flex-fill">
-                    <Link
-                      to="#"
-                      className="br-10 p-2 px-4 btn bg-pending  d-flex align-items-center justify-content-center"
-                    >
-                      <ImageWithBasePath
-                        className="img-fluid m-1"
-                        src="assets/img/icons/facebook-logo.svg"
-                        alt="Facebook"
-                      />
-                    </Link>
-                  </div> */}
-                  {/* <div className="text-center me-2 flex-fill">
-                    <Link
-                      to="#"
-                      className="br-10 p-2 px-4 btn bg-white d-flex align-items-center justify-content-center"
-                    >
-                      <ImageWithBasePath
-                        className="img-fluid  m-1"
-                        src="assets/img/icons/google-logo.svg"
-                        alt="Facebook"
-                      />
-                    </Link>
-                  </div> */}
-                  {/* <div className="text-center flex-fill">
-                    <Link
-                      to="#"
-                      className="bg-dark br-10 p-2 px-4 btn btn-dark d-flex align-items-center justify-content-center"
-                    >
-                      <ImageWithBasePath
-                        className="img-fluid  m-1"
-                        src="assets/img/icons/apple-logo.svg"
-                        alt="Apple"
-                      />
-                    </Link>
-                  </div> */}
-                </div>
-                <div className="text-center">
-                  <p className="fw-medium text-gray">Copyright © 2024 - CRMS</p>
-                </div>
-              </>
+              <div className="text-center">
+                <p className="fw-medium text-gray">Copyright © 2024 - CRMS</p>
+              </div>
             </div>
           </form>
         </div>

@@ -421,6 +421,7 @@ export const SidebarData = [
     submenuHdr: "Sales",
     submenu: false,
     showSubRoute: false,
+    role: "super_admin", 
     submenuItems: [
       {
         label: "Manage Users",
@@ -428,6 +429,7 @@ export const SidebarData = [
         icon: "ti ti-file-invoice",
         showSubRoute: false,
         submenu: false,
+        role: "super_admin",
       },
       {
         label: "Roles & Permission",
@@ -435,6 +437,7 @@ export const SidebarData = [
         icon: "ti ti-navigation-cog",
         showSubRoute: false,
         submenu: false,
+        role: "super_admin",
       },
       {
         label: "Delete  Request",
@@ -442,6 +445,7 @@ export const SidebarData = [
         icon: "ti ti-flag-question",
         showSubRoute: false,
         submenu: false,
+        role: "super_admin",
       },
     ],
   },
