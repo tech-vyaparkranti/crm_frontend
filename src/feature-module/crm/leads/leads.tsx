@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Table from "../../../core/common/dataTable/index";
 import Select from "react-select";
@@ -30,6 +30,17 @@ import { TagsInput } from "react-tag-input-component";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import api from "../../../api/api";
 import { downloadFile } from "./utils/downloadLead";
+
+type Lead = {
+  id: number;
+  lead_name: string;
+  company_name: string;
+  email: string;
+  phone: string;
+  status: string;
+  created_date: string;
+  owner_name: string;
+};
 const Leads = () => {
   const route = all_routes;
   const [adduser, setAdduser] = useState(false);
@@ -43,6 +54,8 @@ const Leads = () => {
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
   const [show3, setShow3] = useState(false);
+  
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -62,6 +75,7 @@ const Leads = () => {
   const [data, setData] = useState([]); // state to hold leads
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -167,20 +181,20 @@ const Leads = () => {
       current: pagination.current,
     }));
   };
-useEffect(() => {
-  const fetchLeads = async () => {
-    try {
-      const response = await api.get("/api/lead-data");
-      console.log("Leads API response:", response.data.leads); // For debugging
-      setData(response.data.leads.data || []);
-      setTotalCount(response.data.leads.total || 0);
-    } catch (error) {
-      console.error("Error fetching leads:", error);
-    }
-  };
+// useEffect(() => {
+//   const fetchLeads = async () => {
+//     try {
+//       const response = await api.get("/api/lead-data");
+//       console.log("Leads API response:", response.data.leads); // For debugging
+//       setData(response.data.leads.data || []);
+//       setTotalCount(response.data.leads.total || 0);
+//     } catch (error) {
+//       console.error("Error fetching leads:", error);
+//     }
+//   };
 
-  fetchLeads();
-}, []);
+//   fetchLeads();
+// }, []);
 
 
 const [sortOrder, setSortOrder] = useState<string>(""); // "", "asc", "desc", etc.
@@ -621,11 +635,9 @@ const filteredAndSortedData = data
                 {/* Page Header */}
                 <div className="page-header">
                   <div className="row align-items-center">
-                    <div className="col-4">
-                      <h4 className="page-title">
-                        Leads<span className="count-title">123</span>
-                      </h4>
-                    </div>
+                    <h4 className="page-title">
+  Leads<span className="count-title">{totalCount}</span>
+</h4>
                     <div className="col-8 text-end">
                       <div className="head-icons">
                         <CollapseHeader />
@@ -647,6 +659,8 @@ const filteredAndSortedData = data
                             type="text"
                             className="form-control"
                             placeholder="Search Leads"
+                            value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                           />
                         </div>
                       </div>
@@ -720,29 +734,29 @@ const filteredAndSortedData = data
                           <div className="dropdown-menu  dropdown-menu-start">
                             <ul>
                               <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Ascending
-                                </Link>
-                              </li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("asc")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Ascending
+  </Link>
+</li>
+                             <li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("desc")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Descending
+  </Link>
+</li>
                               <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Descending
-                                </Link>
-                              </li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("recentlyViewed")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Recently Viewed
+  </Link>
+</li>
                               <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Recently Viewed
-                                </Link>
-                              </li>
-                              <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Recently Added
-                                </Link>
-                              </li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("recentlyAdded")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Recently Added
+  </Link>
+</li>
                             </ul>
                           </div>
                         </div>
@@ -1338,7 +1352,7 @@ const filteredAndSortedData = data
                     <div className="table-responsive custom-table">
                       <Table
                         columns={columns}
-                        dataSource={data}
+                       dataSource={filteredAndSortedData}
                         pagination={pagination}
                         onChange={handleTableChange}
                       />

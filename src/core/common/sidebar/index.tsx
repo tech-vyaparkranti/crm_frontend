@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Scrollbars from "react-custom-scrollbars-2";
 import { SidebarData } from "../../data/json/sidebarData";
@@ -15,6 +15,7 @@ const Sidebar = () => {
   const [subOpen, setSubopen] = useState<any>('');
   const [subsidebar, setSubsidebar] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userData, setUserData] = useState<{ name: string; designation: string } | null>(null);
 
   const toggleSidebar = (title: any) => {
     localStorage.setItem('menuOpened', title)
@@ -43,6 +44,11 @@ const Sidebar = () => {
   useEffect(() => {
     setSubopen(localStorage.getItem('menuOpened'));
     setUserRole(localStorage.getItem('userRole'));
+
+    const storedUser = localStorage.getItem("userData");
+    if (storedUser) {
+      setUserData(JSON.parse(storedUser));
+    }
 
     const submenus = document.querySelectorAll('.submenu')
     submenus.forEach((submenu) => {
@@ -109,10 +115,11 @@ const Sidebar = () => {
               <ul>
                 <li className="clinicdropdown theme">
                   <Link to="/profile">
-                    <ImageWithBasePath src="assets/img/profiles/avatar-14.jpg" className="img-fluid" alt="Profile" />
+                  
+                    <ImageWithBasePath src="https://www.flaticon.com/free-icons/my-profile" className="img-fluid" alt="Profile" />
                     <div className="user-names">
-                      <h5>Adrian Davies</h5>
-                      <h6>Tech Lead</h6>
+                      <h5>{userData?.name || "User Name"}</h5>
+                      <h6>{userData?.designation || "Designation"}</h6>
                     </div>
                   </Link>
                 </li>
@@ -120,9 +127,9 @@ const Sidebar = () => {
 
               <ul>
                {SidebarData?.filter(mainLabel => {
-  if (mainLabel.role && mainLabel.role !== userRole) return false;
-  return true;
-}).map((mainLabel, index) => (
+                  if (mainLabel.role && mainLabel.role !== userRole) return false;
+                  return true;
+                }).map((mainLabel, index) => (
                   <li className="clinicdropdown" key={index}>
                     <h6 className="submenu-hdr">{mainLabel?.label}</h6>
                     <ul>
