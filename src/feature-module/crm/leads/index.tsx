@@ -27,7 +27,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../../api/api";
 import dayjs from "dayjs";
-import { postCallLog } from "../../../api/modules/postCallLogData";
+import { postCallLog, postEditCallLog } from "../../../api/modules/postCallLogData";
+import { CallLog, getCallLogData } from "../../../api/modules/getCallLogData";
+import { NotesLog, getNotesLead } from "../../../api/modules/getNotesLead";
+import {postNotesLead} from '../../../api/modules/postNotesLead';
 const route = all_routes;
 
 
@@ -35,6 +38,29 @@ interface StatusOption {
   value: string;
   label: string;
 }
+interface CallLogsProps {
+  leadId: number;
+}
+
+interface StatusOption {
+  label: string;
+  value: string;
+}
+
+interface LeadProps {
+  lead: {
+    id: number | string;
+    // other lead properties
+  };
+}
+
+interface LeadNotesFormProps {
+  lead?: {
+    id: number;
+    // other lead properties if needed
+  };
+}
+
 
 // Define the status list with proper values
 const statusList: StatusOption[] = [
@@ -44,6 +70,7 @@ const statusList: StatusOption[] = [
   { value: 'not_reachable', label: 'Not Reachable' },
   { value: 'other', label: 'Other' },
 ];
+
 
 
 const LeadsDetails = () => {
@@ -129,15 +156,11 @@ const LeadsDetails = () => {
 
   const handleStatusChange = (newStatus: any) => {
     console.log("Selected status:", newStatus);
-    // You can send API to update status or update state here
+     
   };
 
   const statusSteps = [
-    // { value: "new", label: "New", className: "bg-primary" },
-    // { value: "connected", label: "Connected", className: "bg-info" },
-    // { value: "not connected", label: "Not Connected", className: "bg-pending" },
-    // { value: "lost", label: "Lost", className: "bg-danger" },
-    // { value: "closed", label: "Closed", className: "bg-success" },
+    
     { value: 'busy', label: 'Busy', className: "bg-primary" },
   { value: 'no_answer', label: 'No Answer', className: "bg-info" },
   { value: 'answered', label: 'Answered', className: "bg-pending" },
@@ -145,21 +168,133 @@ const LeadsDetails = () => {
   { value: 'other', label: 'Other', className: "bg-success"  },
   ];
 
-   
-  // busy,no_answer,answered,not_reachable,other
+
+
+  
+  // post api of notes start
+ const [title, setTitle] = useState<StatusOption | null>(null);
+  const [notes_description, setNotes_description] = useState<string>('');
+  const [file, setFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleSubmits = async () => {
+  if (!title || !notes_description || !lead?.id) {
+    alert('Please fill all required fields.');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  const formData = new FormData();
+  formData.append('lead_id', lead.id.toString());
+  formData.append('title', typeof title === 'string' ? title : title.label || '');
+  formData.append('notes_description', notes_description);
+  
+  if (file) {
+    formData.append('file_path', file, file.name);
+  }
+
+  // SAFE way to debug FormData contents
+  Array.from(formData.entries()).forEach(([key, value]) => {
+    console.log(key, value);
+  });
+
+  try {
+    const res = await postNotesLead(formData);
+    console.log('Notes lead submitted:', res);
+    alert('Notes submitted successfully!');
+    
+    // Reset form
+    setTitle(null);
+    setNotes_description('');
+    setFile(null);
+  } catch (error: any) {
+    console.error('Submission error:', error);
+    alert(error.response?.data?.message || 'Failed to submit note. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  // post api of notes end 
+
+
+  // get notes lead start
+
+   const [notesLogs, setNotesLogs] = useState<NotesLog[]>([]);
+  const [activeEditorIndex, setActiveEditorIndex] = useState<number | null>(null);
+
+ 
+  const ascendingAndDescending = [
+    { value: 'asc', label: 'Ascending' },
+    { value: 'desc', label: 'Descending' },
+  ];
+
+  // Fetch notes when lead ID changes
+  useEffect(() => {
+    const fetchNotesLogs = async () => {
+      if (!lead?.id) return; // Guard clause
+
+      try {
+        setLoading(true);
+        const notes = await getNotesLead(lead.id);
+        setNotesLogs(notes);
+        console.log("get notes data ===============>", notes);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch notes");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotesLogs();
+  }, [lead?.id]);
+
+  // Function to format date
+  const formatDates = (dateString: string) => {
+    const date = new Date(dateString);
+    return (
+      date.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }) +
+      ", " +
+      date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    );
+  };
+
+  // Toggle comment editor for a specific note
+  const toggleEditor = (index: number) => {
+    setActiveEditorIndex(activeEditorIndex === index ? null : index);
+  };
+  // get notes lead end
+
+ 
 
 
   //  call log start
 
-   const [status, setStatus] = useState<StatusOption | null>(null);
-const [followUpDate, setFollowUpDate] = useState<string>('');
-const [note, setNote] = useState<string>('');
+  const [status, setStatus] = useState<StatusOption | null>(null);
+  const [followUpDate, setFollowUpDate] = useState<string>('');
+  const [note, setNote] = useState<string>('');
 
-const handleSubmit = async () => {
-  if (!status || !followUpDate || !note || !lead?.id) {
-    alert('Please fill all required fields.');
-    return;
-  }
+  const handleSubmit = async () => {
+    if (!status || !followUpDate || !note || !lead?.id) {
+      alert('Please fill all required fields.');
+      return;
+    }
 
   // Include the correct action parameter as required by the backend
   const payload = {
@@ -186,6 +321,67 @@ const handleSubmit = async () => {
   }
 };
   // call log end 
+  
+
+  // edit call log start
+   
+  // edit call log end 
+
+  // get api of call log start
+ 
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [error, setError] = useState<string | null>(null);
+// const [loading, setLoading] = useState<boolean>(false);
+
+ 
+useEffect(() => {
+  const fetchCallLogs = async () => {
+    if (!lead?.id) return; // optional: guard clause
+
+    try {
+      setLoading(true);
+      const logs = await getCallLogData(lead.id);
+      setCallLogs(logs);
+      console.log("get call log data ===============>", logs);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch call logs");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCallLogs();
+}, [lead?.id]);
+
+// Function to format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return (
+    date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }) +
+    ", " +
+    date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  );
+};
+
+if (loading) return <div className="text-center py-4">Loading call logs...</div>;
+if (error) return <div className="alert alert-danger">{error}</div>;
+
+
+
+  // get api of call log end here 
+
+  
+ 
 
   return (
     <>
@@ -825,7 +1021,10 @@ const handleSubmit = async () => {
                   </div>
                   {/* /Activities */}
                   {/* Notes */}
-                  <div className="tab-pane fade" id="notes">
+
+
+                  {/* old code */}
+                   {/* <div className="tab-pane fade" id="notes">
                     <div className="card">
                       <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                         <h4 className="fw-semibold">Notes</h4>
@@ -1183,10 +1382,162 @@ const handleSubmit = async () => {
                         </div>
                       </div>
                     </div>
+                  </div> */}
+
+                  {/* old code end */}
+                <div className="tab-pane fade" id="notes">
+      <div className="card">
+        <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+          <h4 className="fw-semibold">Notes</h4>
+          <div className="d-inline-flex align-items-center">
+            <div className="form-sort me-3 mt-0">
+              <i className="ti ti-sort-ascending-2" />
+              <Select
+                className="select"
+                options={ascendingAndDescending}
+                placeholder="Ascending"
+                classNamePrefix="react-select"
+              />
+            </div>
+            <Link
+              to="#"
+              data-bs-toggle="modal"
+              data-bs-target="#add_notes"
+              className="link-purple fw-medium"
+            >
+              <i className="ti ti-circle-plus me-1" />
+              Add New
+            </Link>
+          </div>
+        </div>
+        
+        <div className="card-body">
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          ) : notesLogs.length === 0 ? (
+            <div className="text-center py-4">
+              <p className="mb-0">No notes available for this lead.</p>
+            </div>
+          ) : (
+            <div className="notes-activity">
+              {notesLogs.map((note, index) => (
+                <div className="card mb-3" key={note.id}>
+                  <div className="card-body">
+                    <div className="d-flex align-items-center justify-content-between pb-2">
+                      <div className="d-inline-flex align-items-center mb-2">
+                        <span className="avatar avatar-md me-2 flex-shrink-0">
+                          {note.user?.avatar ? (
+                            <ImageWithBasePath src={note.user.avatar} alt="img" />
+                          ) : (
+                            <div className="avatar-text">{note.user?.name.charAt(0)}</div>
+                          )}
+                        </span>
+                        <div>
+                          <h6 className="fw-medium mb-1">{note.user?.name || "Unknown User"}</h6>
+                          <p className="mb-0">{formatDates(note.created_at)}</p>
+                        </div>
+                      </div>
+                      <div className="mb-2">
+                        <div className="dropdown">
+                          <Link
+                            to="#"
+                            className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i className="ti ti-dots-vertical" />
+                          </Link>
+                          <div className="dropdown-menu dropdown-menu-right">
+                            <Link className="dropdown-item" to="#">
+                              <i className="ti ti-edit text-blue me-1" />
+                              Edit
+                            </Link>
+                            <Link className="dropdown-item" to="#">
+                              <i className="ti ti-trash text-danger me-1" />
+                              Delete
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <h5 className="fw-medium mb-1">{note.title}</h5>
+                    <p>{note.notes_description}</p>
+                    
+                    {note.file_path && (
+                      <div className="d-inline-flex align-items-center flex-wrap">
+                        <div className="note-download me-3">
+                          <div className="note-info">
+                            <span className="note-icon bg-secondary-success">
+                              <i className="ti ti-file-text" />
+                            </span>
+                            <div>
+                              <h6 className="fw-medium mb-1">
+                                {note.file_path.split('/').pop() || "Attachment"}
+                              </h6>
+                              <p>File Attachment</p>
+                            </div>
+                          </div>
+                          <Link to={note.file_path}>
+                            <i className="ti ti-arrow-down" />
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="notes-editor">
+                      <div
+                        className="note-edit-wrap"
+                        style={{
+                          display: activeEditorIndex === index ? "block" : "none",
+                        }}
+                      >
+                        <DefaultEditor className="summernote" />
+                        <div className="text-end note-btns">
+                          <Link
+                            to="#"
+                            className="btn btn-light add-cancel"
+                            onClick={() => toggleEditor(index)}
+                          >
+                            Cancel
+                          </Link>
+                          <Link to="#" className="btn btn-primary">
+                            Save
+                          </Link>
+                        </div>
+                      </div>
+                      <div className="text-end">
+                        <Link
+                          to="#"
+                          className="add-comment link-purple fw-medium"
+                          onClick={() => toggleEditor(index)}
+                        >
+                          <i className="ti ti-square-plus me-1" />
+                          Add Comment
+                        </Link>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+                   
+
                   {/* /Notes */}
                   {/* Calls */}
-                  <div className="tab-pane fade" id="calls">
+                  {/* <div className="tab-pane fade" id="calls">
                     <div className="card">
                       <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                         <h4 className="fw-semibold">Calls</h4>
@@ -1445,7 +1796,127 @@ const handleSubmit = async () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
+
+
+                   <div className="tab-pane fade show active" id="calls">
+                      <div className="card">
+                        <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                          <h4 className="fw-semibold">Calls</h4>
+                          <div className="d-inline-flex align-items-center">
+                            <Link
+                              to="#"
+                              data-bs-toggle="modal"
+                              data-bs-target="#create_call"
+                              className="link-purple fw-medium"
+                            >
+                              <i className="ti ti-circle-plus me-1" />
+                              Add New
+                            </Link>
+                          </div>
+                        </div>
+                        <div className="card-body">
+                          {callLogs.map((call, index) => (
+                            <div className="card mb-3" key={call.id}>
+                              <div className="card-body">
+                                <div className="d-sm-flex align-items-center justify-content-between pb-2">
+                                  <div className="d-flex align-items-center mb-2">
+                                    <span className="avatar avatar-md me-2 flex-shrink-0">
+                                      <ImageWithBasePath
+                                        src={`assets/img/profiles/avatar-${19 + index}.jpg`}
+                                        alt="img"
+                                      />
+                                    </span>
+                                    <p>
+                                      <span className="text-dark fw-medium">
+                                        Caller {index + 1}
+                                      </span>{" "}
+                                      logged a call on{" "}
+                                      {new Date(call.follow_up_date).toLocaleDateString("en-US", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                      })}, 08:00 pm
+                                    </p>
+                                  </div>
+                                  <div className="d-inline-flex align-items-center mb-2">
+                                    <div className="dropdown me-2">
+                                      <Link
+                                        to="#"
+                                        className={`py-1 ${
+                                          call.status === "busy"
+                                            ? "bg-danger"
+                                            : call.status === "no_answer"
+                                            ? "bg-pending"
+                                            : "bg-success"
+                                        }`}
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                      >
+                                        {call.status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                                        <i className="ti ti-chevron-down ms-2" />
+                                      </Link>
+                                      <div className="dropdown-menu dropdown-menu-right">
+                                        {[
+                                          "Busy",
+                                          "No Answer",
+                                          "Unavailable",
+                                          "Wrong Number",
+                                          "Left Voice Message",
+                                          "Moving Forward",
+                                        ].map((status, i) => (
+                                          <Link className="dropdown-item" to="#" key={i}>
+                                            {status}
+                                          </Link>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div className="dropdown">
+                                      <Link
+                                        to="#"
+                                        className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false"
+                                      >
+                                        <i className="ti ti-dots-vertical" />
+                                      </Link>
+                                      <div className="dropdown-menu dropdown-menu-right">
+                                        {/* <Link className="dropdown-item" to="#">
+                                          <i className="ti ti-edit text-blue me-1" />
+                                          Edit
+                                        </Link> */}
+                                        
+                                        <Link   to="#"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#create_call"
+                                        className="link-purple fw-medium">
+                                          <i className="ti ti-edit text-blue me-1" />
+                                          Edit
+                                        </Link>
+
+
+
+                                       
+
+                                          
+                                        {/* <Link className="dropdown-item" to="#">
+                                          <i className="ti ti-trash text-danger me-1" />
+                                          Delete
+                                        </Link> */}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p>{call.note}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+
+
                   {/* /Calls */}
                   {/* Files */}
                   <div className="tab-pane fade" id="files">
@@ -1799,7 +2270,7 @@ const handleSubmit = async () => {
       </div>
       {/* /Create Contact */}
       {/* Add Note */}
-      <div
+      {/* <div
         className="modal custom-modal fade modal-padding"
         id="add_notes"
         role="dialog"
@@ -1894,7 +2365,101 @@ const handleSubmit = async () => {
             </div>
           </div>
         </div>
+      </div> */}
+
+      <div className="modal custom-modal fade modal-padding" id="add_notes" role="dialog">
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h5 className="modal-title">Add New Notes</h5>
+        <button
+          type="button"
+          className="btn-close position-static"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
+      <div className="modal-body">
+        <form>
+          {/* Title input */}
+          <div className="mb-3">
+            <label className="col-form-label">
+              Title <span className="text-danger">*</span>
+            </label>
+            <input
+              className="form-control"
+              type="text"
+              value={title?.label || ''}
+              onChange={(e) =>
+                setTitle({ label: e.target.value, value: e.target.value })
+              }
+            />
+          </div>
+
+          {/* Notes description */}
+          <div className="mb-3">
+            <label className="col-form-label">
+              Note <span className="text-danger">*</span>
+            </label>
+            <textarea
+              className="form-control"
+              rows={4}
+              value={notes_description}
+              onChange={(e) => setNotes_description(e.target.value)}
+            />
+          </div>
+
+          {/* File upload */}
+            {/* File Upload Field */}
+        <div className="mb-3">
+          <label className="form-label">Attachment</label>
+          <div className="drag-attach">
+            <input 
+              type="file"
+              className="form-control"
+               name="file_path" // important!
+              onChange={handleFileChange}
+              accept=".pdf,.doc,.docx,.jpg,.png" // Specify accepted file types
+            />
+            <div className="img-upload">
+              <i className="ti ti-file-broken" />
+              <span>Upload File</span>
+            </div>
+          </div>
+          
+          {/* Display selected file name */}
+          {file && (
+            <div className="mt-2">
+              <span className="badge bg-light text-dark">
+                {file.name} ({Math.round(file.size / 1024)} KB)
+              </span>
+            </div>
+          )}
+        </div>
+
+
+          {/* Action buttons */}
+          <div className="col-lg-12 text-end modal-btn">
+            <button type="button" className="btn btn-light" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSubmits}
+              data-bs-dismiss="modal"
+            >
+              Confirm
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
       {/* /Add Note */}
       {/* Create Call Log */}
        <div className="modal custom-modal fade modal-padding" id="create_call" role="dialog">
