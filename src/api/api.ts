@@ -3,7 +3,11 @@ import { base_path } from '../environment';
 
 const api = axios.create({
   // baseURL: 'http://192.168.1.9:8000',
+<<<<<<< HEAD
   baseURL: 'http://192.168.0.193:8000',
+=======
+  baseURL: 'http://192.168.1.15:8000',
+>>>>>>> 4d293d9597da6c8b3ed693aa94a1a065c4986bd1
   // withCredentials: true,  
 });
 

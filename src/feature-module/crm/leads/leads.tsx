@@ -29,6 +29,7 @@ import { all_routes } from "../../router/all_routes";
 import { TagsInput } from "react-tag-input-component";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import api from "../../../api/api";
+import { downloadFile } from "./utils/downloadLead";
 const Leads = () => {
   const route = all_routes;
   const [adduser, setAdduser] = useState(false);
@@ -256,7 +257,7 @@ const Leads = () => {
       },
     });
     alert("Leads uploaded successfully.");
-    setIsSubmitting(true); // Refresh leads table
+    setIsSubmitting(true); 
   } catch (error) {
     console.error("CSV Upload Failed:", error);
     alert("CSV upload failed. Check the console for more info.");
@@ -300,7 +301,7 @@ const Leads = () => {
           >
             <ImageWithBasePath
               className="w-auto h-auto "
-              src={record.image}
+              src={record.image || "/assets/img/man (1).png"}
               alt="User Image"
             />
           </Link>
@@ -612,14 +613,14 @@ const Leads = () => {
                             </Link>
                             <div className="dropdown-menu  dropdown-menu-end">
                               <ul>
-                                <li>
-                                  <Link to="#" className="dropdown-item">
+                                {/* <li>
+                                  <Link to="#" className="dropdown-item" onClick={() => downloadFile('pdf')}>
                                     <i className="ti ti-file-type-pdf text-danger me-1" />
                                     Export as PDF
                                   </Link>
-                                </li>
+                                </li> */}
                                 <li>
-                                  <Link to="#" className="dropdown-item">
+                                  <Link to="#" className="dropdown-item" onClick={() => downloadFile('excel')}>
                                     <i className="ti ti-file-type-xls text-green me-1" />
                                     Export as Excel{" "}
                                   </Link>
