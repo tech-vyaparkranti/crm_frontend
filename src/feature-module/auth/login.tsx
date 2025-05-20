@@ -41,6 +41,7 @@ const Login = () => {
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("token", token);
       localStorage.setItem("userRole", user.role); // ✅ Save user role
+      localStorage.setItem("userDesignation", user.designation); 
       localStorage.setItem("userData", JSON.stringify(user));
 
       navigate(route.dealsDashboard);
