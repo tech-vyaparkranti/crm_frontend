@@ -80,6 +80,8 @@ const LeadsDetails = () => {
   const [lead, setLead] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [addcomment, setAddComment] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
 
   const togglecomment = () => {
     setAddComment((prevState) => !prevState);
@@ -172,18 +174,21 @@ const LeadsDetails = () => {
 
   
   // post api of notes start
- const [title, setTitle] = useState<StatusOption | null>(null);
-  const [notes_description, setNotes_description] = useState<string>('');
-  const [file, setFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-    }
-  };
+const [title, setTitle] = useState<StatusOption | null>(null);
+const [notes_description, setNotes_description] = useState<string>('');
+const [file, setFile] = useState<File | null>(null);
+const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmits = async () => {
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files && e.target.files.length > 0) {
+    setFile(e.target.files[0]);
+  }
+};
+
+const handleSubmits = async (e: React.FormEvent) => {
+  e.preventDefault(); // Prevent default form submission
+  
   if (!title || !notes_description || !lead?.id) {
     alert('Please fill all required fields.');
     return;
@@ -197,17 +202,18 @@ const LeadsDetails = () => {
   formData.append('notes_description', notes_description);
   
   if (file) {
-    formData.append('file_path', file, file.name);
+    formData.append('file', file); // Changed from 'file_path' to 'file'
   }
 
-  // SAFE way to debug FormData contents
-  Array.from(formData.entries()).forEach(([key, value]) => {
-    console.log(key, value);
-  });
+  // Debugging
+  // console.log('File to upload:', file);
+  // for (const [key, value] of formData.entries()) {
+  //   console.log(key, value);
+  // }
 
   try {
     const res = await postNotesLead(formData);
-    console.log('Notes lead submitted:', res);
+    console.log('Response:', res);
     alert('Notes submitted successfully!');
     
     // Reset form
@@ -215,12 +221,14 @@ const LeadsDetails = () => {
     setNotes_description('');
     setFile(null);
   } catch (error: any) {
-    console.error('Submission error:', error);
-    alert(error.response?.data?.message || 'Failed to submit note. Please try again.');
+    console.error('Error:', error);
+    alert(error.response?.data?.message || 'Failed to submit note.');
   } finally {
     setIsSubmitting(false);
   }
 };
+
+
   // post api of notes end 
 
 
@@ -1460,10 +1468,10 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                               <i className="ti ti-edit text-blue me-1" />
                               Edit
                             </Link>
-                            <Link className="dropdown-item" to="#">
+                            {/* <Link className="dropdown-item" to="#">
                               <i className="ti ti-trash text-danger me-1" />
                               Delete
-                            </Link>
+                            </Link> */}
                           </div>
                         </div>
                       </div>
@@ -1513,7 +1521,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                           </Link>
                         </div>
                       </div>
-                      <div className="text-end">
+                      {/* <div className="text-end">
                         <Link
                           to="#"
                           className="add-comment link-purple fw-medium"
@@ -1522,7 +1530,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                           <i className="ti ti-square-plus me-1" />
                           Add Comment
                         </Link>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
@@ -1856,8 +1864,8 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                                         {call.status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                                         <i className="ti ti-chevron-down ms-2" />
                                       </Link>
-                                      <div className="dropdown-menu dropdown-menu-right">
-                                        {[
+                                      <div className="dropdown-menu dropdown-menu-right" style={{ display: showDropdown ? 'block' : 'none' }}>
+                                        {/* {[
                                           "Busy",
                                           "No Answer",
                                           "Unavailable",
@@ -1868,7 +1876,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                                           <Link className="dropdown-item" to="#" key={i}>
                                             {status}
                                           </Link>
-                                        ))}
+                                        ))} */}
                                       </div>
                                     </div>
                                     <div className="dropdown">
@@ -2367,7 +2375,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
         </div>
       </div> */}
 
-      <div className="modal custom-modal fade modal-padding" id="add_notes" role="dialog">
+     <div className="modal custom-modal fade modal-padding" id="add_notes" role="dialog">
   <div className="modal-dialog modal-dialog-centered">
     <div className="modal-content">
       <div className="modal-header">
@@ -2382,7 +2390,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
         </button>
       </div>
       <div className="modal-body">
-        <form>
+        <form onSubmit={handleSubmits}>
           {/* Title input */}
           <div className="mb-3">
             <label className="col-form-label">
@@ -2395,6 +2403,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
               onChange={(e) =>
                 setTitle({ label: e.target.value, value: e.target.value })
               }
+              required
             />
           </div>
 
@@ -2408,50 +2417,54 @@ if (error) return <div className="alert alert-danger">{error}</div>;
               rows={4}
               value={notes_description}
               onChange={(e) => setNotes_description(e.target.value)}
+              required
             />
           </div>
 
           {/* File upload */}
-            {/* File Upload Field */}
-        <div className="mb-3">
-          <label className="form-label">Attachment</label>
-          <div className="drag-attach">
-            <input 
-              type="file"
-              className="form-control"
-               name="file_path" // important!
-              onChange={handleFileChange}
-              accept=".pdf,.doc,.docx,.jpg,.png" // Specify accepted file types
-            />
-            <div className="img-upload">
-              <i className="ti ti-file-broken" />
-              <span>Upload File</span>
+          <div className="mb-3">
+            <label className="form-label">Attachment</label>
+            <div className="drag-attach">
+              <input
+                type="file"
+                id="fileInput"
+                accept=".pdf,.doc,.docx,.jpg,.png"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              <label 
+                htmlFor="fileInput"
+                className="img-upload"
+                style={{ cursor: 'pointer' }}
+              >
+                <i className="ti ti-file-broken" />
+                <span>Upload File</span>
+              </label>
             </div>
+            
+            {file && (
+              <div className="mt-2">
+                <span className="badge bg-light text-dark">
+                  {file.name} ({Math.round(file.size / 1024)} KB)
+                </span>
+              </div>
+            )}
           </div>
-          
-          {/* Display selected file name */}
-          {file && (
-            <div className="mt-2">
-              <span className="badge bg-light text-dark">
-                {file.name} ({Math.round(file.size / 1024)} KB)
-              </span>
-            </div>
-          )}
-        </div>
 
-
-          {/* Action buttons */}
           <div className="col-lg-12 text-end modal-btn">
-            <button type="button" className="btn btn-light" data-bs-dismiss="modal">
+            <button 
+              type="button" 
+              className="btn btn-light" 
+              data-bs-dismiss="modal"
+            >
               Cancel
             </button>
             <button
-              type="button"
+              type="submit"
               className="btn btn-primary"
-              onClick={handleSubmits}
-              data-bs-dismiss="modal"
+              disabled={isSubmitting}
             >
-              Confirm
+              {isSubmitting ? 'Uploading...' : 'Confirm'}
             </button>
           </div>
         </form>
