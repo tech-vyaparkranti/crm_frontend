@@ -167,6 +167,7 @@ const Leads = () => {
           pageSize: leads.per_page,
           total: leads.total,
         });
+        setTotalCount(leads.total);
       })
       .catch((error) => {
         console.error("Error fetching leads:", error);
@@ -180,20 +181,20 @@ const Leads = () => {
       current: pagination.current,
     }));
   };
-useEffect(() => {
-  const fetchLeads = async () => {
-    try {
-      const response = await api.get("/api/lead-data");
-      console.log("Leads API response:", response.data.leads); // For debugging
-      setData(response.data.leads.data || []);
-      setTotalCount(response.data.leads.total || 0);
-    } catch (error) {
-      console.error("Error fetching leads:", error);
-    }
-  };
+// useEffect(() => {
+//   const fetchLeads = async () => {
+//     try {
+//       const response = await api.get("/api/lead-data");
+//       console.log("Leads API response:", response.data.leads); // For debugging
+//       setData(response.data.leads.data || []);
+//       setTotalCount(response.data.leads.total || 0);
+//     } catch (error) {
+//       console.error("Error fetching leads:", error);
+//     }
+//   };
 
-  fetchLeads();
-}, []);
+//   fetchLeads();
+// }, []);
 
 
 const [sortOrder, setSortOrder] = useState<string>(""); // "", "asc", "desc", etc.
