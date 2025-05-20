@@ -196,7 +196,7 @@ useEffect(() => {
 }, []);
 
 
-const [sortOrder, setSortOrder] = useState<string>("asc");
+const [sortOrder, setSortOrder] = useState<string>(""); // "", "asc", "desc", etc.
 const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
   start: null,
   end: null,
@@ -733,29 +733,29 @@ const filteredAndSortedData = data
                           <div className="dropdown-menu  dropdown-menu-start">
                             <ul>
                               <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Ascending
-                                </Link>
-                              </li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("asc")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Ascending
+  </Link>
+</li>
+                             <li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("desc")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Descending
+  </Link>
+</li>
                               <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Descending
-                                </Link>
-                              </li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("recentlyViewed")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Recently Viewed
+  </Link>
+</li>
                               <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Recently Viewed
-                                </Link>
-                              </li>
-                              <li>
-                                <Link to="#" className="dropdown-item">
-                                  <i className="ti ti-circle-chevron-right me-1" />
-                                  Recently Added
-                                </Link>
-                              </li>
+  <Link to="#" className="dropdown-item" onClick={() => setSortOrder("recentlyAdded")}>
+    <i className="ti ti-circle-chevron-right me-1" />
+    Recently Added
+  </Link>
+</li>
                             </ul>
                           </div>
                         </div>
