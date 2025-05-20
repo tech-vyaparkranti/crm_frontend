@@ -153,6 +153,7 @@ const Leads = () => {
           pageSize: leads.per_page,
           total: leads.total,
         });
+        setTotalCount(leads.total);
       })
       .catch((error) => {
         console.error("Error fetching leads:", error);
@@ -166,6 +167,55 @@ const Leads = () => {
       current: pagination.current,
     }));
   };
+useEffect(() => {
+  const fetchLeads = async () => {
+    try {
+      const response = await api.get("/api/lead-data");
+      console.log("Leads API response:", response.data.leads); // For debugging
+      setData(response.data.leads.data || []);
+      setTotalCount(response.data.leads.total || 0);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+    }
+  };
+
+  fetchLeads();
+}, []);
+
+
+const [sortOrder, setSortOrder] = useState<string>(""); // "", "asc", "desc", etc.
+const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+  start: null,
+  end: null,
+});
+
+
+const filteredAndSortedData = data
+  .filter((item: Lead) => {
+    const matchesSearch =
+      (item.lead_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.phone?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const createdDate = new Date(item.created_date);
+    const inDateRange =
+      (!dateRange.start || createdDate >= dateRange.start) &&
+      (!dateRange.end || createdDate <= dateRange.end);
+
+    return matchesSearch && inDateRange;
+  })
+  .sort((a: Lead, b: Lead) => {
+    if (sortOrder === "asc") {
+      return a.lead_name.localeCompare(b.lead_name);
+    } else if (sortOrder === "desc") {
+      return b.lead_name.localeCompare(a.lead_name);
+    } else if (sortOrder === "recentlyAdded" || sortOrder === "recentlyViewed") {
+      return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+    }
+    return 0;
+  });
+
 
   // useEffect(() => {
   //   api
