@@ -1,14 +1,19 @@
-import React, {useState} from "react";
+import React, { useEffect, useState } from "react";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import DateRangePicker from "react-bootstrap-daterangepicker";
 import Chart from "react-apexcharts";
+import ApexCharts from 'apexcharts'
 import { Link } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import CollapseHeader from "../../../core/common/collapse-header";
+import api from "../../../api/api";
+import { Lead, PaginatedResponse } from "./LeadInterface";
 
 const route = all_routes;
+
 const LeadsDashboard = () => {
-  const [chartOptions] = useState<any>( {
+  
+  const [chartOptions] = useState<any>({
     series: [
       {
         data: [400, 220, 448],
@@ -29,12 +34,12 @@ const LeadsDashboard = () => {
     },
     xaxis: {
       categories: ["Conversation", "Follow Up", "Inpipeline"],
-      min: 0,  
-          max: 500,  
-          tickAmount: 5,  
+      min: 0,
+      max: 500,
+      tickAmount: 5,
     },
   });
-  const [chartOptions2] = useState<any>( {
+  const [chartOptions2] = useState<any>({
     series: [
       {
         data: [400, 220, 448],
@@ -55,9 +60,9 @@ const LeadsDashboard = () => {
     },
     xaxis: {
       categories: ["Conversation", "Follow Up", "Inpipeline"],
-      min: 0,  
-          max: 500,  
-          tickAmount: 5,  
+      min: 0,
+      max: 500,
+      tickAmount: 5,
     },
   });
   const [chartOptions3] = useState<any>({
@@ -88,30 +93,24 @@ const LeadsDashboard = () => {
     },
   });
 
-  
-    const chartElement = document.querySelector("#leadpiechart");
-    if (chartElement) {
-      const options = {
-        series: chartOptions3.series,
-        chart: {
-          width: 400,
-          type: "pie",
-        },
-        legend: {
-          position: "bottom",
-        },
-        labels: chartOptions3.options.labels,
-        responsive: chartOptions3.options.responsive,
-      };
+  // const chartElement = document.querySelector("#leadpiechart");
+  // if (chartElement) {
+  //   const options = {
+  //     series: chartOptions3.series,
+  //     chart: {
+  //       width: 400,
+  //       type: "pie",
+  //     },
+  //     legend: {
+  //       position: "bottom",
+  //     },
+  //     labels: chartOptions3.options.labels,
+  //     responsive: chartOptions3.options.responsive,
+  //   };
 
-      const chart = new ApexCharts(chartElement, options);
-      chart.render();
-    }
- 
-
-
-
-
+  //   const chart = new ApexCharts(chartElement, options);
+  //   chart.render();
+  // }
 
   // const [chartOptions3] = useState<any>( {
   //   series: [44, 55, 13, 43],
@@ -140,7 +139,7 @@ const LeadsDashboard = () => {
   //     ],
   //   },
   // });
-  const [chartOptions4] = useState<any>( {
+  const [chartOptions4] = useState<any>({
     series: [
       {
         name: "Reports",
@@ -189,7 +188,6 @@ const LeadsDashboard = () => {
     },
   });
 
-
   const initialSettings = {
     endDate: new Date("2020-08-11T12:30:00.000Z"),
     ranges: {
@@ -221,470 +219,596 @@ const LeadsDashboard = () => {
     startDate: new Date("2020-08-04T04:57:17.076Z"), // Set "Last 7 Days" as default
     timePicker: false,
   };
+
+
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [allLeads ,setAllLeads] = useState();
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [lastPage, setLastPage] = useState<number>(1);
+  const [filterDays, setFilterDays] = useState<number>(1);
+  useEffect(() => {
+    fetchLeads(currentPage, filterDays);
+  }, [filterDays, currentPage]);
+
+  const fetchLeads = async (page: number = 1, filterDays: number = 1) => {
+    try {
+      const response = await api.get("/api/dashboard/lead", {
+        params: { days: filterDays, page: page },
+      });
+      setAllLeads(response.data.allLeads);
+      setLeads(response.data.leads.data);
+      setCurrentPage(response.data.leads.current_page);
+      setLastPage(response.data.leads.last_page);
+    } catch (error) {
+      console.error("Failed to fetch leads", error);
+    }
+  };
+
+  const leadSorting = (days: number) => {
+    setFilterDays(days);
+  };
+
   return (
     <div>
       {/* Page Wrapper */}
       <div className="page-wrapper">
-  <div className="content">
-    <div className="row">
-      <div className="col-md-12">
-        <div className="page-header">
-          <div className="row align-items-center ">
-            <div className="col-md-4">
-              <h3 className="page-title">Leads Dashboard</h3>
+        <div className="content">
+          <div className="row">
+            <div className="col-md-12">
+              <div className="page-header">
+                <div className="row align-items-center ">
+                  <div className="col-md-4">
+                    <h3 className="page-title">Leads Dashboard</h3>
+                  </div>
+                  <div className="col-md-8 float-end ms-auto">
+                    <div className="d-flex title-head">
+                      <div className="daterange-picker d-flex align-items-center justify-content-center">
+                        <div className="form-sort me-2">
+                          <i className="ti ti-calendar" />
+                          <DateRangePicker initialSettings={initialSettings}>
+                            <input
+                              className="form-control bookingrange"
+                              type="text"
+                            />
+                          </DateRangePicker>
+                        </div>
+                        <div className="head-icons mb-0">
+                          <CollapseHeader />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="col-md-8 float-end ms-auto">
-              <div className="d-flex title-head">
-                <div className="daterange-picker d-flex align-items-center justify-content-center">
-                  <div className="form-sort me-2">
-                    <i className="ti ti-calendar" />
-                    <DateRangePicker
-                                initialSettings={initialSettings}
+          </div>
+          <div className="row align-items-start">
+            <div className="col-md-7" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+              <div className="card">
+                <div className="card-header border-0 pb-0">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                    <h4>
+                      <i className="ti ti-grip-vertical me-1" />
+                      Recently Created Leads
+                    </h4>
+                    <div className="dropdown">
+                      <Link
+                        className="dropdown-toggle"
+                        data-bs-toggle="dropdown"
+                        to="#"
+                      >
+                        <i className="ti ti-calendar-check me-2" />
+                        {/* Last {filterDays} Days */}
+                        Today
+                      </Link>
+                      <div className="dropdown-menu dropdown-menu-end">
+                        <Link
+                          to="#"
+                          className="dropdown-item"
+                          onClick={() => leadSorting(15)}
+                        >
+                          Last 15 days
+                        </Link>
+                        <Link
+                          to="#"
+                          className="dropdown-item"
+                          onClick={() => leadSorting(30)}
+                        >
+                          Last 30 days
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <div className="table-responsive custom-table">
+                    <table className="table dataTable" id="lead-project">
+                      <thead className="thead-light">
+                        <tr>
+                          <th>Lead Name</th>
+                          <th>Company Name</th>
+                          <th>Phone</th>
+                          <th>Lead Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* <tr className="odd">
+                          <td>Collins</td>
+                          <td>
+                            <h2 className="d-flex align-items-center">
+                              <Link
+                                to={route.companyDetails}
+                                className="avatar avatar-sm border me-2"
                               >
-                                <input
-                                  className="form-control bookingrange"
-                                  type="text"
+                                <ImageWithBasePath
+                                  className="w-auto h-auto"
+                                  src="assets/img/icons/company-icon-01.svg"
+                                  alt="User Image"
                                 />
-                              </DateRangePicker>
-                  </div>
-                  <div className="head-icons mb-0">
-                    <CollapseHeader/>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div className="row">
-      <div className="col-md-7">
-        <div className="card">
-          <div className="card-header border-0 pb-0">
-            <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-              <h4>
-                <i className="ti ti-grip-vertical me-1" />
-                Recently Created Leads
-              </h4>
-              <div className="dropdown">
-                <Link
-                  className="dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  to="#"
-                >
-                  <i className="ti ti-calendar-check me-2" />
-                  Last 30 days
-                </Link>
-                <div className="dropdown-menu dropdown-menu-end">
-                  <Link to="#" className="dropdown-item">
-                    Last 15 days
-                  </Link>
-                  <Link to="#" className="dropdown-item">
-                    Last 30 days
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-body">
-            <div className="table-responsive custom-table">
-              <table className="table dataTable" id="lead-project">
-                <thead className="thead-light">
-                  <tr>
-                    <th>Lead Name</th>
-                    <th>Company Name</th>
-                    <th>Phone</th>
-                    <th>Lead Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                            <tr className="odd">
-                              <td>Collins</td>
-                              <td>
-                                <h2 className="d-flex align-items-center">
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="avatar avatar-sm border me-2"
-                                  >
-                                    <ImageWithBasePath
-                                      className="w-auto h-auto"
-                                      src="assets/img/icons/company-icon-01.svg"
-                                      alt="User Image"
-                                    />
-                                  </Link>
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="d-flex flex-column"
-                                  >
-                                    NovaWave LLC<span className="text-default">Newyork, USA </span>
-                                  </Link>
-                                </h2>
-                              </td>
-                              <td>+1 875455453</td>
-                              <td>
-                                <span className="badge badge-pill  bg-pending">
-                                  {" "}
-                                  Not Contacted
+                              </Link>
+                              <Link
+                                to={route.companyDetails}
+                                className="d-flex flex-column"
+                              >
+                                NovaWave LLC
+                                <span className="text-default">
+                                  Newyork, USA{" "}
                                 </span>
-                              </td>
-                            </tr>
-                            <tr className="even">
-                              <td>Konopelski</td>
-                              <td>
-                                <h2 className="d-flex align-items-center">
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="avatar avatar-sm border me-2"
-                                  >
-                                    <ImageWithBasePath
-                                      className="w-auto h-auto"
-                                      src="assets/img/icons/company-icon-02.svg"
-                                      alt="User Image"
-                                    />
-                                  </Link>
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="d-flex flex-column"
-                                  >
-                                    BlueSky Industries
-                                    <span className="text-default">Winchester, KY </span>
-                                  </Link>
-                                </h2>
-                              </td>
-                              <td>+1 989757485</td>
-                              <td>
-                                <span className="badge badge-pill  bg-warning">
-                                  {" "}
-                                  Contacted
+                              </Link>
+                            </h2>
+                          </td>
+                          <td>+1 875455453</td>
+                          <td>
+                            <span className="badge badge-pill  bg-pending">
+                              {" "}
+                              Not Contacted
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="even">
+                          <td>Konopelski</td>
+                          <td>
+                            <h2 className="d-flex align-items-center">
+                              <Link
+                                to={route.companyDetails}
+                                className="avatar avatar-sm border me-2"
+                              >
+                                <ImageWithBasePath
+                                  className="w-auto h-auto"
+                                  src="assets/img/icons/company-icon-02.svg"
+                                  alt="User Image"
+                                />
+                              </Link>
+                              <Link
+                                to={route.companyDetails}
+                                className="d-flex flex-column"
+                              >
+                                BlueSky Industries
+                                <span className="text-default">
+                                  Winchester, KY{" "}
                                 </span>
-                              </td>
-                            </tr>
-                            <tr className="odd">
-                              <td>Adams</td>
-                              <td>
-                                <h2 className="d-flex align-items-center">
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="avatar avatar-sm border me-2"
-                                  >
-                                    <ImageWithBasePath
-                                      className="w-auto h-auto"
-                                      src="assets/img/icons/company-icon-03.svg"
-                                      alt="User Image"
-                                    />
-                                  </Link>
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="d-flex flex-column"
-                                  >
-                                    SilverHawk<span className="text-default">Jametown, NY </span>
-                                  </Link>
-                                </h2>
-                              </td>
-                              <td>+1 546555455</td>
-                              <td>
-                                <span className="badge badge-pill  bg-warning">
-                                  {" "}
-                                  Contacted
+                              </Link>
+                            </h2>
+                          </td>
+                          <td>+1 989757485</td>
+                          <td>
+                            <span className="badge badge-pill  bg-warning">
+                              {" "}
+                              Contacted
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="odd">
+                          <td>Adams</td>
+                          <td>
+                            <h2 className="d-flex align-items-center">
+                              <Link
+                                to={route.companyDetails}
+                                className="avatar avatar-sm border me-2"
+                              >
+                                <ImageWithBasePath
+                                  className="w-auto h-auto"
+                                  src="assets/img/icons/company-icon-03.svg"
+                                  alt="User Image"
+                                />
+                              </Link>
+                              <Link
+                                to={route.companyDetails}
+                                className="d-flex flex-column"
+                              >
+                                SilverHawk
+                                <span className="text-default">
+                                  Jametown, NY{" "}
                                 </span>
-                              </td>
-                            </tr>
-                            <tr className="even">
-                              <td>Schumm</td>
-                              <td>
-                                <h2 className="d-flex align-items-center">
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="avatar avatar-sm border me-2"
-                                  >
-                                    <ImageWithBasePath
-                                      className="w-auto h-auto"
-                                      src="assets/img/icons/company-icon-04.svg"
-                                      alt="User Image"
-                                    />
-                                  </Link>
-                                  <Link
-                                    to={route.companyDetails}
-                                    className="d-flex flex-column"
-                                  >
-                                    SummitPeak<span className="text-default">Compton, RI </span>
-                                  </Link>
-                                </h2>
-                              </td>
-                              <td>+1 454478787</td>
-                              <td>
-                                <span className="badge badge-pill  bg-pending">
-                                  {" "}
-                                  Not Contacted
+                              </Link>
+                            </h2>
+                          </td>
+                          <td>+1 546555455</td>
+                          <td>
+                            <span className="badge badge-pill  bg-warning">
+                              {" "}
+                              Contacted
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="even">
+                          <td>Schumm</td>
+                          <td>
+                            <h2 className="d-flex align-items-center">
+                              <Link
+                                to={route.companyDetails}
+                                className="avatar avatar-sm border me-2"
+                              >
+                                <ImageWithBasePath
+                                  className="w-auto h-auto"
+                                  src="assets/img/icons/company-icon-04.svg"
+                                  alt="User Image"
+                                />
+                              </Link>
+                              <Link
+                                to={route.companyDetails}
+                                className="d-flex flex-column"
+                              >
+                                SummitPeak
+                                <span className="text-default">
+                                  Compton, RI{" "}
                                 </span>
-                              </td>
-                            </tr>
-                          </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-md-5 d-flex">
-        <div className="card w-100">
-          <div className="card-header border-0 pb-0">
-            <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-              <h4>
-                <i className="ti ti-grip-vertical me-1" />
-                Projects By Stage
-              </h4>
-              <div className="dropdown">
-                <Link
-                  className="dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  to="#"
-                >
-                  Last 30 Days
-                </Link>
-                <div className="dropdown-menu dropdown-menu-end">
-                  <Link to="#" className="dropdown-item">
-                    Last 30 Days
-                  </Link>
-                  <Link to="#" className="dropdown-item">
-                    Last 15 Days
-                  </Link>
-                  <Link to="#" className="dropdown-item">
-                    Last 7 Days
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-body">
-          <div id="leadpiechart">
-      <Chart
-        options={chartOptions3.options}
-        series={chartOptions3.series}
-        type="pie"
-        width={chartOptions3.options.chart.width}
-        height={chartOptions3.options.chart.height}
-      />
-    </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div className="row">
-      <div className="col-md-12 d-flex">
-        <div className="card w-100">
-          <div className="card-header border-0 pb-0">
-            <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-              <h4>
-                <i className="ti ti-grip-vertical me-1" />
-                Projects By Stage
-              </h4>
-              <div className="d-flex align-items-center flex-wrap row-gap-2">
-                <div className="dropdown me-2">
-                  <Link
-                    className="dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    to="#"
-                  >
-                    Sales Pipeline
-                  </Link>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <Link to="#" className="dropdown-item">
-                      Marketing Pipeline
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Sales Pipeline
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Email
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Chats
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Operational
-                    </Link>
-                  </div>
-                </div>
-                <div className="dropdown">
-                  <Link
-                    className="dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    to="#"
-                  >
-                    Last 30 Days
-                  </Link>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <Link to="#" className="dropdown-item">
-                      Last 30 Days
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Last 15 Days
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Last 7 Days
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-body">
-          <div id="contact-report">
-                        <Chart
-                        options={chartOptions4}
-                          series={chartOptions4.series}
-                          type="area"
-                          height={chartOptions4.chart.height}
-                        />
-                      </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-md-6">
-        <div className="card">
-          <div className="card-header border-0 pb-0">
-            <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-              <h4>
-                <i className="ti ti-grip-vertical me-1" />
-                Leads By Stage
-              </h4>
-              <div className="d-flex align-items-center flex-wrap row-gap-2">
-                <div className="dropdown me-2">
-                  <Link
-                    className="dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    to="#"
-                  >
-                    Marketing Pipeline
-                  </Link>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <Link to="#" className="dropdown-item">
-                      Marketing Pipeline
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Sales Pipeline
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Email
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Chats
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Operational
-                    </Link>
-                  </div>
-                </div>
-                <div className="dropdown">
-                  <Link
-                    className="dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    to="#"
-                  >
-                    Last 3 months
-                  </Link>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <Link to="#" className="dropdown-item">
-                      Last 3 months
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Last 6 months
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Last 12 months
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-body">
-          <div id="last-chart">
-                        <Chart
-                          options={chartOptions}
-                          series={chartOptions.series}
-                          type={chartOptions.chart.type}
-                          height={chartOptions.chart.height}
-                        />
-                      </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-md-6">
-        <div className="card">
-          <div className="card-header border-0 pb-0">
-            <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-              <h4>
-                <i className="ti ti-grip-vertical me-1" />
-                Won Deals Stage
-              </h4>
-              <div className="d-flex align-items-center flex-wrap row-gap-2">
-                <div className="dropdown me-2">
-                  <Link
-                    className="dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    to="#"
-                  >
-                    Marketing Pipeline
-                  </Link>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <Link to="#" className="dropdown-item">
-                      Marketing Pipeline
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Sales Pipeline
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Email
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Chats
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Operational
-                    </Link>
-                  </div>
-                </div>
-                <div className="dropdown">
-                  <Link
-                    className="dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    to="#"
-                  >
-                    Last 3 months
-                  </Link>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <Link to="#" className="dropdown-item">
-                      Last 3 months
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Last 6 months
-                    </Link>
-                    <Link to="#" className="dropdown-item">
-                      Last 12 months
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-body ">
-          <div id="won-chart">
-                        {" "}
-                        <Chart
-                          options={chartOptions2}
-                          series={chartOptions2.series}
-                          type={chartOptions2.chart.type}
-                          height={chartOptions2.chart.height}
-                        />
-                      </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+                              </Link>
+                            </h2>
+                          </td>
+                          <td>+1 454478787</td>
+                          <td>
+                            <span className="badge badge-pill  bg-pending">
+                              {" "}
+                              Not Contacted
+                            </span>
+                          </td>
+                        </tr> */}
+                        {leads.map((lead: Lead) => (
+                          <tr key={lead.id}>
+                            <td>{lead.lead_name}</td>
+                            <td>{lead.company_name}</td>
+                            <td>{lead.phone1}</td>
+                            <td>
+                              <span
+                                className={`badge badge-pill bg-${
+                                  lead.status === "Contacted"
+                                    ? "warning"
+                                    : "pending"
+                                }`}
+                              >
+                                {lead.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        {leads.length === 0 && (
+                          <tr>
+                            <td colSpan={4}>No leads found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                    <div className="pagination mt-3">
+                      <nav>
+                        <ul className="pagination">
+                          <li
+                            className={`page-item ${
+                              currentPage === 1 ? "disabled" : ""
+                            }`}
+                          >
+                            <button
+                              className="page-link"
+                              onClick={() => setCurrentPage(currentPage - 1)}
+                            >
+                              Previous
+                            </button>
+                          </li>
 
+                          {[...Array(lastPage)].map((_, index) => {
+                            const page = index + 1;
+                            return (
+                              <li
+                                key={page}
+                                className={`page-item ${
+                                  page === currentPage ? "active" : ""
+                                }`}
+                              >
+                                <button
+                                  className="page-link"
+                                  onClick={() => setCurrentPage(page)}
+                                >
+                                  {page}
+                                </button>
+                              </li>
+                            );
+                          })}
+
+                          <li
+                            className={`page-item ${
+                              currentPage === lastPage ? "disabled" : ""
+                            }`}
+                          >
+                            <button
+                              className="page-link"
+                              onClick={() => setCurrentPage(currentPage + 1)}
+                            >
+                              Next
+                            </button>
+                          </li>
+                        </ul>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-5" style={{ flex: "0 0 auto" }}>
+              <div className="card w-100">
+                <div className="card-header border-0 pb-0">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                    <h4>
+                      <i className="ti ti-grip-vertical me-1" />
+                      Projects By Stage
+                    </h4>
+                    <div className="dropdown">
+                      <Link
+                        className="dropdown-toggle"
+                        data-bs-toggle="dropdown"
+                        to="#"
+                      >
+                        Last 30 Days
+                      </Link>
+                      <div className="dropdown-menu dropdown-menu-end">
+                        <Link to="#" className="dropdown-item">
+                          Last 30 Days
+                        </Link>
+                        <Link to="#" className="dropdown-item">
+                          Last 15 Days
+                        </Link>
+                        <Link to="#" className="dropdown-item">
+                          Last 7 Days
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-body" style={{ height: "auto", padding: "1rem" }}>
+                  <div id="leadpiechart">
+                    {/* <Chart
+                      options={chartOptions3.options}
+                      series={chartOptions3.series}
+                      type="pie"
+                      width={chartOptions3.options.chart.width}
+                      height={chartOptions3.options.chart.height}
+                    /> */}
+                    <Chart
+    options={chartOptions3.options}
+    series={chartOptions3.series}
+    type="pie"
+    width={chartOptions3.options.chart.width}
+    height={chartOptions3.options.chart.height}
+  />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-12 d-flex">
+              <div className="card w-100">
+                <div className="card-header border-0 pb-0">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                    <h4>
+                      <i className="ti ti-grip-vertical me-1" />
+                      Projects By Stage
+                    </h4>
+                    <div className="d-flex align-items-center flex-wrap row-gap-2">
+                      <div className="dropdown me-2">
+                        <Link
+                          className="dropdown-toggle"
+                          data-bs-toggle="dropdown"
+                          to="#"
+                        >
+                          Sales Pipeline
+                        </Link>
+                        <div className="dropdown-menu dropdown-menu-end">
+                          <Link to="#" className="dropdown-item">
+                            Marketing Pipeline
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Sales Pipeline
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Email
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Chats
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Operational
+                          </Link>
+                        </div>
+                      </div>
+                      <div className="dropdown">
+                        <Link
+                          className="dropdown-toggle"
+                          data-bs-toggle="dropdown"
+                          to="#"
+                        >
+                          Last 30 Days
+                        </Link>
+                        <div className="dropdown-menu dropdown-menu-end">
+                          <Link to="#" className="dropdown-item">
+                            Last 30 Days
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Last 15 Days
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Last 7 Days
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <div id="contact-report">
+                    <Chart
+                      options={chartOptions4}
+                      series={chartOptions4.series}
+                      type="area"
+                      height={chartOptions4.chart.height}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="card">
+                <div className="card-header border-0 pb-0">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                    <h4>
+                      <i className="ti ti-grip-vertical me-1" />
+                      Leads By Stage
+                    </h4>
+                    <div className="d-flex align-items-center flex-wrap row-gap-2">
+                      <div className="dropdown me-2">
+                        <Link
+                          className="dropdown-toggle"
+                          data-bs-toggle="dropdown"
+                          to="#"
+                        >
+                          Marketing Pipeline
+                        </Link>
+                        <div className="dropdown-menu dropdown-menu-end">
+                          <Link to="#" className="dropdown-item">
+                            Marketing Pipeline
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Sales Pipeline
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Email
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Chats
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Operational
+                          </Link>
+                        </div>
+                      </div>
+                      <div className="dropdown">
+                        <Link
+                          className="dropdown-toggle"
+                          data-bs-toggle="dropdown"
+                          to="#"
+                        >
+                          Last 3 months
+                        </Link>
+                        <div className="dropdown-menu dropdown-menu-end">
+                          <Link to="#" className="dropdown-item">
+                            Last 3 months
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Last 6 months
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Last 12 months
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <div id="last-chart">
+                    <Chart
+                      options={chartOptions}
+                      series={chartOptions.series}
+                      type={chartOptions.chart.type}
+                      height={chartOptions.chart.height}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="card">
+                <div className="card-header border-0 pb-0">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                    <h4>
+                      <i className="ti ti-grip-vertical me-1" />
+                      Won Deals Stage
+                    </h4>
+                    <div className="d-flex align-items-center flex-wrap row-gap-2">
+                      <div className="dropdown me-2">
+                        <Link
+                          className="dropdown-toggle"
+                          data-bs-toggle="dropdown"
+                          to="#"
+                        >
+                          Marketing Pipeline
+                        </Link>
+                        <div className="dropdown-menu dropdown-menu-end">
+                          <Link to="#" className="dropdown-item">
+                            Marketing Pipeline
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Sales Pipeline
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Email
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Chats
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Operational
+                          </Link>
+                        </div>
+                      </div>
+                      <div className="dropdown">
+                        <Link
+                          className="dropdown-toggle"
+                          data-bs-toggle="dropdown"
+                          to="#"
+                        >
+                          Last 3 months
+                        </Link>
+                        <div className="dropdown-menu dropdown-menu-end">
+                          <Link to="#" className="dropdown-item">
+                            Last 3 months
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Last 6 months
+                          </Link>
+                          <Link to="#" className="dropdown-item">
+                            Last 12 months
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-body ">
+                  <div id="won-chart">
+                    {" "}
+                    <Chart
+                      options={chartOptions2}
+                      series={chartOptions2.series}
+                      type={chartOptions2.chart.type}
+                      height={chartOptions2.chart.height}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

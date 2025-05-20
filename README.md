@@ -50,3 +50,4 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 
 <!-- installed package  -->
  npm install dayjs
+npm install apexcharts react-apexcharts
