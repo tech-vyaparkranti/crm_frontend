@@ -30,6 +30,17 @@ import { TagsInput } from "react-tag-input-component";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import api from "../../../api/api";
 import { downloadFile } from "./utils/downloadLead";
+
+type Lead = {
+  id: number;
+  lead_name: string;
+  company_name: string;
+  email: string;
+  phone: string;
+  status: string;
+  created_date: string;
+  owner_name: string;
+};
 const Leads = () => {
   const route = all_routes;
   const [adduser, setAdduser] = useState(false);
@@ -43,6 +54,8 @@ const Leads = () => {
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
   const [show3, setShow3] = useState(false);
+  
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -62,6 +75,7 @@ const Leads = () => {
   const [data, setData] = useState([]); // state to hold leads
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -166,6 +180,55 @@ const Leads = () => {
       current: pagination.current,
     }));
   };
+useEffect(() => {
+  const fetchLeads = async () => {
+    try {
+      const response = await api.get("/api/lead-data");
+      console.log("Leads API response:", response.data.leads); // For debugging
+      setData(response.data.leads.data || []);
+      setTotalCount(response.data.leads.total || 0);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+    }
+  };
+
+  fetchLeads();
+}, []);
+
+
+const [sortOrder, setSortOrder] = useState<string>("asc");
+const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+  start: null,
+  end: null,
+});
+
+
+const filteredAndSortedData = data
+  .filter((item: Lead) => {
+    const matchesSearch =
+      (item.lead_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.phone?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const createdDate = new Date(item.created_date);
+    const inDateRange =
+      (!dateRange.start || createdDate >= dateRange.start) &&
+      (!dateRange.end || createdDate <= dateRange.end);
+
+    return matchesSearch && inDateRange;
+  })
+  .sort((a: Lead, b: Lead) => {
+    if (sortOrder === "asc") {
+      return a.lead_name.localeCompare(b.lead_name);
+    } else if (sortOrder === "desc") {
+      return b.lead_name.localeCompare(a.lead_name);
+    } else if (sortOrder === "recentlyAdded" || sortOrder === "recentlyViewed") {
+      return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+    }
+    return 0;
+  });
+
 
   // useEffect(() => {
   //   api
@@ -571,11 +634,9 @@ const Leads = () => {
                 {/* Page Header */}
                 <div className="page-header">
                   <div className="row align-items-center">
-                    <div className="col-4">
-                      <h4 className="page-title">
-                        Leads<span className="count-title">123</span>
-                      </h4>
-                    </div>
+                    <h4 className="page-title">
+  Leads<span className="count-title">{totalCount}</span>
+</h4>
                     <div className="col-8 text-end">
                       <div className="head-icons">
                         <CollapseHeader />
@@ -597,6 +658,8 @@ const Leads = () => {
                             type="text"
                             className="form-control"
                             placeholder="Search Leads"
+                            value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                           />
                         </div>
                       </div>
@@ -1288,7 +1351,7 @@ const Leads = () => {
                     <div className="table-responsive custom-table">
                       <Table
                         columns={columns}
-                        dataSource={data}
+                       dataSource={filteredAndSortedData}
                         pagination={pagination}
                         onChange={handleTableChange}
                       />
