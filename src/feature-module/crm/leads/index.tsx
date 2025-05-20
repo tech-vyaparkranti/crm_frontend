@@ -20,14 +20,31 @@ import {
   ascendingandDecending,
   documentType,
   LocaleData,
-  statusList,
+  // statusList,
 } from "../../../core/common/selectoption/selectoption";
 import { SelectWithImage2 } from "../../../core/common/selectWithImage2";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../../api/api";
 import dayjs from "dayjs";
+import { postCallLog } from "../../../api/modules/postCallLogData";
 const route = all_routes;
+
+
+interface StatusOption {
+  value: string;
+  label: string;
+}
+
+// Define the status list with proper values
+const statusList: StatusOption[] = [
+  { value: 'busy', label: 'Busy' },
+  { value: 'no_answer', label: 'No Answer' },
+  { value: 'answered', label: 'Answered' },
+  { value: 'not_reachable', label: 'Not Reachable' },
+  { value: 'other', label: 'Other' },
+];
+
 
 const LeadsDetails = () => {
   const { id } = useParams();
@@ -116,12 +133,59 @@ const LeadsDetails = () => {
   };
 
   const statusSteps = [
-    { value: "new", label: "New", className: "bg-primary" },
-    { value: "connected", label: "Connected", className: "bg-info" },
-    { value: "not connected", label: "Not Connected", className: "bg-pending" },
-    { value: "lost", label: "Lost", className: "bg-danger" },
-    { value: "closed", label: "Closed", className: "bg-success" },
+    // { value: "new", label: "New", className: "bg-primary" },
+    // { value: "connected", label: "Connected", className: "bg-info" },
+    // { value: "not connected", label: "Not Connected", className: "bg-pending" },
+    // { value: "lost", label: "Lost", className: "bg-danger" },
+    // { value: "closed", label: "Closed", className: "bg-success" },
+    { value: 'busy', label: 'Busy', className: "bg-primary" },
+  { value: 'no_answer', label: 'No Answer', className: "bg-info" },
+  { value: 'answered', label: 'Answered', className: "bg-pending" },
+  { value: 'not_reachable', label: 'Not Reachable',  className: "bg-danger" },
+  { value: 'other', label: 'Other', className: "bg-success"  },
   ];
+
+   
+  // busy,no_answer,answered,not_reachable,other
+
+
+  //  call log start
+
+   const [status, setStatus] = useState<StatusOption | null>(null);
+const [followUpDate, setFollowUpDate] = useState<string>('');
+const [note, setNote] = useState<string>('');
+
+const handleSubmit = async () => {
+  if (!status || !followUpDate || !note || !lead?.id) {
+    alert('Please fill all required fields.');
+    return;
+  }
+
+  // Include the correct action parameter as required by the backend
+  const payload = {
+    lead_id: lead.id,
+    status: status.value,
+    follow_up_date: followUpDate,
+    note,
+    action: 'insert', // Use 'insert' for creating a new call log
+  };
+
+  try {
+    // Add debugging to see what's being sent
+    console.log('Submitting payload:', payload);
+    
+    const res = await postCallLog(payload);
+    console.log('Call log submitted:', res);
+    alert('Call log submitted successfully!');
+    setStatus(null);
+    setFollowUpDate('');
+    setNote('');
+  } catch (error: any) {
+    console.error('Failed to submit call log:', error.response?.data || error.message);
+    alert(error.response?.data?.error || 'Failed to submit call log. Please try again.');
+  }
+};
+  // call log end 
 
   return (
     <>
@@ -1833,94 +1897,96 @@ const LeadsDetails = () => {
       </div>
       {/* /Add Note */}
       {/* Create Call Log */}
-      <div
-        className="modal custom-modal fade modal-padding"
-        id="create_call"
-        role="dialog"
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Create Call Log</h5>
-              <button
-                type="button"
-                className="btn-close position-static"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            </div>
-            <div className="modal-body">
-              <form>
-                <div className="row">
-                  <div className="col-md-12">
-                    <div className="mb-3">
-                      <label className="col-form-label">
-                        Status <span className="text-danger"> *</span>
-                      </label>
-                      <Select
-                        className="select2"
-                        options={statusList}
-                        placeholder="Choose"
-                        classNamePrefix="react-select"
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label className="col-form-label">
-                        Follow Up Date <span className="text-danger"> *</span>
-                      </label>
-                      <div className="icon-form">
-                        <span className="form-icon">
-                          <i className="ti ti-calendar-check" />
-                        </span>
-                        <input
-                          type="text"
-                          className="form-control datetimepicker"
-                          placeholder=""
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <label className="col-form-label">
-                        Note <span className="text-danger"> *</span>
-                      </label>
-                      <textarea
+       <div className="modal custom-modal fade modal-padding" id="create_call" role="dialog">
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Create Call Log</h5>
+            <button
+              type="button"
+              className="btn-close position-static"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div className="modal-body">
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="row">
+                <div className="col-md-12">
+                  <div className="mb-3">
+                    <label className="col-form-label">
+                      Status <span className="text-danger"> *</span>
+                    </label>
+                   <Select
+                    className="select2"
+                    options={statusSteps}
+                    placeholder="Choose"
+                    classNamePrefix="react-select"
+                    value={status}
+                    onChange={(selected) => setStatus(selected)}
+                  />
+
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="col-form-label">
+                      Follow Up Date <span className="text-danger"> *</span>
+                    </label>
+                    <div className="icon-form">
+                      <span className="form-icon">
+                        <i className="ti ti-calendar-check" />
+                      </span>
+                      <input
+                        type="date"
                         className="form-control"
-                        rows={4}
-                        placeholder="Add text"
-                        defaultValue={""}
+                        value={followUpDate}
+                        onChange={(e) => setFollowUpDate(e.target.value)}
                       />
-                    </div>
-                    <div className="mb-3">
-                      <label className="checkboxs">
-                        <input type="checkbox" />
-                        <span className="checkmarks" /> Create a followup task
-                      </label>
-                    </div>
-                    <div className="text-end modal-btn">
-                      <Link
-                        to="#"
-                        className="btn btn-light"
-                        data-bs-dismiss="modal"
-                      >
-                        Cancel
-                      </Link>
-                      <button
-                        className="btn btn-primary"
-                        data-bs-dismiss="modal"
-                        type="button"
-                      >
-                        Confirm
-                      </button>
                     </div>
                   </div>
+
+                  <div className="mb-3">
+                    <label className="col-form-label">
+                      Note <span className="text-danger"> *</span>
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      placeholder="Add text"
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="checkboxs">
+                      <input type="checkbox" />
+                      <span className="checkmarks" /> Create a followup task
+                    </label>
+                  </div>
+
+                  <div className="text-end modal-btn">
+                    <Link to="#" className="btn btn-light" data-bs-dismiss="modal">
+                      Cancel
+                    </Link>
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      data-bs-dismiss="modal"
+                      onClick={handleSubmit}
+                    >
+                      Confirm
+                    </button>
+                  </div>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
+    </div>
       {/* /Create Call Log */}
       {/* Add File */}
       <div
