@@ -111,7 +111,7 @@ const Sidebar = () => {
                 </div>
               </div>
             </>
-            <div id="sidebar-menu" className="sidebar-menu">
+            <div id="sidebar-menu" className="sidebar-menu" >
               <ul>
                 <li className="clinicdropdown theme">
                   <Link to="/profile">
