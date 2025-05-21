@@ -44,7 +44,7 @@ const Login = () => {
       localStorage.setItem("userDesignation", user.designation); 
       localStorage.setItem("userData", JSON.stringify(user));
 
-      navigate(route.dealsDashboard);
+      navigate(route.leadsDashboard);
     } catch (error: any) {
       console.error("Login failed:", error.response?.data);
       alert("Login failed. Please check your credentials.");
