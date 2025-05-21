@@ -31,6 +31,7 @@ import { postCallLog, postEditCallLog } from "../../../api/modules/postCallLogDa
 import { CallLog, getCallLogData } from "../../../api/modules/getCallLogData";
 import { NotesLog, getNotesLead } from "../../../api/modules/getNotesLead";
 import {postNotesLead} from '../../../api/modules/postNotesLead';
+import { postLeadStatus } from "../../../api/modules/postLeadStatus";
 const route = all_routes;
 
 
@@ -61,6 +62,14 @@ interface LeadNotesFormProps {
   };
 }
 
+interface LeadType {
+  id: number;
+  status: string;
+  // add other lead fields if needed
+}
+
+ 
+
 
 // Define the status list with proper values
 const statusList: StatusOption[] = [
@@ -81,6 +90,8 @@ const LeadsDetails = () => {
   const [loading, setLoading] = useState(true);
   const [addcomment, setAddComment] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+   const [update, setUpdate] = useState(false);
+  // const [lead, setLead] = useState<LeadType | null>(null);
 
 
   const togglecomment = () => {
@@ -220,6 +231,7 @@ const handleSubmits = async (e: React.FormEvent) => {
     setTitle(null);
     setNotes_description('');
     setFile(null);
+    
   } catch (error: any) {
     console.error('Error:', error);
     alert(error.response?.data?.message || 'Failed to submit note.');
@@ -263,7 +275,7 @@ const handleSubmits = async (e: React.FormEvent) => {
     };
 
     fetchNotesLogs();
-  }, [lead?.id]);
+  }, [lead?.id, update]);
 
   // Function to format date
   const formatDates = (dateString: string) => {
@@ -297,6 +309,7 @@ const handleSubmits = async (e: React.FormEvent) => {
   const [status, setStatus] = useState<StatusOption | null>(null);
   const [followUpDate, setFollowUpDate] = useState<string>('');
   const [note, setNote] = useState<string>('');
+  // const [update, setUpdate] = useState(false);
 
   const handleSubmit = async () => {
     if (!status || !followUpDate || !note || !lead?.id) {
@@ -323,17 +336,71 @@ const handleSubmits = async (e: React.FormEvent) => {
     setStatus(null);
     setFollowUpDate('');
     setNote('');
+    setLead((prev: LeadType | null) =>
+      prev ? { ...prev, status: status.value } : prev
+    );
+    setUpdate((prev) => !prev);
   } catch (error: any) {
     console.error('Failed to submit call log:', error.response?.data || error.message);
     alert(error.response?.data?.error || 'Failed to submit call log. Please try again.');
   }
 };
+
+useEffect(() => {
+  console.log("Updated lead status:", lead?.status);
+  // you can re-fetch call logs here or update a UI component
+}, [update]);
   // call log end 
   
 
   // edit call log start
    
   // edit call log end 
+
+  // post lead status start
+
+  const [statuses, setStatuses] = useState<StatusOption | null>(null);
+  
+
+ const handleSubmitLead = async (opt: string) => {
+  if (!opt || !lead?.id) {
+    alert('Please fill all required fields.');
+    return;
+  }
+
+  const payload = {
+    id: lead.id,
+    status: opt,
+    action: 'status',
+  };
+
+  try {
+    console.log('Submitting payload:', payload);
+    const res = await postLeadStatus(payload);
+    console.log('Call log submitted:', res);
+
+    // ✅ Update local lead state
+    setLead((prev: LeadType | null) => prev ? { ...prev, status: opt } : prev);
+    setUpdate((prev) => !prev);
+
+    alert('Call log submitted successfully!');
+  } catch (error: any) {
+    console.error('Failed to submit call log:', error.response?.data || error.message);
+    alert(error.response?.data?.error || 'Failed to submit call log. Please try again.');
+  }
+};
+
+useEffect(() => {
+  // Example: re-fetch or do something on update
+  console.log("Updated lead status:", lead?.status);
+}, [update]);
+
+
+
+
+  // post lead status end
+
+
 
   // get api of call log start
  
@@ -361,7 +428,7 @@ useEffect(() => {
   };
 
   fetchCallLogs();
-}, [lead?.id]);
+}, [lead?.id, update]);
 
 // Function to format date
 const formatDate = (dateString: string) => {
@@ -501,7 +568,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                             </Link>
                           </div>
                         </div> */}
-                        <div className="dropdown mb-2">
+                        {/* <div className="dropdown mb-2">
                           <Link
                             to="#"
                             className={`bg-${
@@ -528,7 +595,34 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                                 )
                             )}
                           </div>
-                        </div>
+                        </div> */}
+
+                       <Link
+  to="#"
+  className={`bg-${lead?.status === "closed" ? "danger" : "success"} text-white py-1 px-2`}
+  data-bs-toggle="dropdown"
+  aria-expanded="false"
+>
+  {lead?.status || "Select Status"}
+  <i className="ti ti-chevron-down ms-2" />
+</Link>
+<div className="dropdown-menu dropdown-menu-right">
+  {statusOptions.map(
+    (opt) =>
+      opt !== lead?.status && (
+        <Link
+          key={opt}
+          className="dropdown-item"
+          to="#"
+          onClick={() => handleSubmitLead(opt)}
+        >
+          <span>{opt}</span>
+        </Link>
+      )
+  )}
+</div>
+
+
                       </div>
                     </div>
                   </div>
