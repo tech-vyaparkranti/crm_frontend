@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Table from "../../core/common/dataTable/index";
 import Select from "react-select";
 import DateRangePicker from "react-bootstrap-daterangepicker";
@@ -6,9 +6,107 @@ import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../core/common/imageWithBasePath";
 import { manageusersData } from "../../core/data/json/manageuser";
 import CollapseHeader from "../../core/common/collapse-header";
+import { orgUserData } from "./orgUserInterface";
+import { OrgUser } from "../../api/modules/getOrgUser";
 
 const Manageusers = () => {
-  const data = manageusersData;
+  const [sort, setShort] = useState("");
+  const [dateRange, setDateRange] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({
+    start: null,
+    end: null,
+  });
+  const [data, setData] = useState<orgUserData[]>([
+    {
+      id: 0,
+      name: "",
+      email: "",
+      department: "",
+      designation: "",
+      emp_id: "",
+      password: "",
+      phone: 1234567890,
+      status: "",
+      org_id: 0,
+      profile_img: null,
+      role: "",
+      action: "update",
+      key: 0,
+      created_at: new Date("1995-05-05"),
+    },
+  ]);
+
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  useEffect(() => {
+    fetchUserData(pagination.current);
+  }, [pagination.current]);
+
+  const fetchUserData = async (page: any) => {
+    const response = await OrgUser(page);
+    const userData = response.data;
+    setData(userData);
+    setPagination({
+      current: response.current_page,
+      pageSize: response.per_page,
+      total: response.total,
+    });
+  };
+
+  const handleSort = (value: string) => {
+    setShort(value);
+  };
+  const handleDates = (event: any) => {
+    const picker = event.target.daterangepicker;
+
+    setDateRange({
+      start: picker.startDate.toDate(),
+      end: picker.endDate.toDate(),
+    });
+  };
+
+  const filteredAndSortedData = data
+    .filter((item: orgUserData) => {
+      const matchesSearch =
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.department?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const createdDate = new Date(item.created_at);
+      const inDateRange =
+        (!dateRange.start || createdDate >= dateRange.start) &&
+        (!dateRange.end || createdDate <= dateRange.end);
+
+      return matchesSearch && inDateRange;
+    })
+    .sort((a: orgUserData, b: orgUserData) => {
+      if (sort === "asc") {
+        return a.name.localeCompare(b.name);
+      } else if (sort === "desc") {
+        return b.name.localeCompare(a.name);
+      } else if (sort === "recentlyAdded" || sort === "recentlyViewed") {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      }
+      return 0;
+    });
+
+  const handleTableChange = (paginationInfo: any) => {
+    setPagination((prev) => ({
+      ...prev,
+      current: paginationInfo.current,
+      pageSize: paginationInfo.pageSize,
+    }));
+  };
 
   const options2 = [
     { value: "Choose", label: "Choose" },
@@ -30,7 +128,7 @@ const Manageusers = () => {
 
   const initializeStarsState = () => {
     const starsState: { [key: number]: boolean } = {};
-    manageusersData.forEach((item, index) => {
+    data.forEach((item, index) => {
       starsState[index] = false;
     });
     setStars(starsState);
@@ -65,13 +163,13 @@ const Manageusers = () => {
           <Link to="#" className="avatar avatar-sm me-2">
             <ImageWithBasePath
               className="w-auto h-auto"
-              src={record.image}
+              src={record.profile_img || "/assets/img/man (1).png"}
               alt="User Image"
             />
           </Link>
           <Link to="#" className="d-flex flex-column">
-            {record.customer_name}
-            <span className="text-default">{text.customer_no} </span>
+            {record.name}
+            {/* <span className="text-default">{text.phone} </span> */}
           </Link>
         </h2>
       ),
@@ -90,21 +188,21 @@ const Manageusers = () => {
       sorter: true,
     },
     {
-      title: "Location",
-      dataIndex: "location",
-      key: "location",
+      title: "Department",
+      dataIndex: "department",
+      key: "department",
       sorter: true,
     },
     {
-      title: "Created",
-      dataIndex: "created",
-      key: "created",
+      title: "Designation",
+      dataIndex: "designation",
+      key: "designation",
       sorter: true,
     },
     {
-      title: "Last Activity",
-      dataIndex: "last_activity",
-      key: "last_activity",
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
       sorter: true,
     },
     {
@@ -112,13 +210,13 @@ const Manageusers = () => {
       dataIndex: "status",
       render: (text: string) => (
         <div>
-          {text === "Active" && (
+          {text == "active" && (
             <span className="badge badge-pill badge-status bg-success">
               {text}
             </span>
           )}
 
-          {text === "Inactive" && (
+          {text == "inactive" && (
             <span className="badge badge-pill badge-status bg-danger">
               {text}
             </span>
@@ -163,37 +261,48 @@ const Manageusers = () => {
       ),
     },
   ];
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  const last7DaysStart = new Date(today);
+  last7DaysStart.setDate(today.getDate() - 6); // 7 days including today
+
+  const last30DaysStart = new Date(today);
+  last30DaysStart.setDate(today.getDate() - 29); // 30 days including today
+
+  const firstDayOfThisMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+  const lastDayOfThisMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    0
+  );
+
+  const firstDayOfLastMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() - 1,
+    1
+  );
+  const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+
   const initialSettings = {
-    endDate: new Date("2020-08-11T12:30:00.000Z"),
-    ranges: {
-      "Last 30 Days": [
-        new Date("2020-07-12T04:57:17.076Z"),
-        new Date("2020-08-10T04:57:17.076Z"),
-      ],
-      "Last 7 Days": [
-        new Date("2020-08-04T04:57:17.076Z"),
-        new Date("2020-08-10T04:57:17.076Z"),
-      ],
-      "Last Month": [
-        new Date("2020-06-30T18:30:00.000Z"),
-        new Date("2020-07-31T18:29:59.999Z"),
-      ],
-      "This Month": [
-        new Date("2020-07-31T18:30:00.000Z"),
-        new Date("2020-08-31T18:29:59.999Z"),
-      ],
-      Today: [
-        new Date("2020-08-10T04:57:17.076Z"),
-        new Date("2020-08-10T04:57:17.076Z"),
-      ],
-      Yesterday: [
-        new Date("2020-08-09T04:57:17.076Z"),
-        new Date("2020-08-09T04:57:17.076Z"),
-      ],
-    },
-    startDate: new Date("2020-08-04T04:57:17.076Z"), // Set "Last 7 Days" as default
+    startDate: last7DaysStart,
+    endDate: today,
     timePicker: false,
+    ranges: {
+      Today: [today, today],
+      Yesterday: [yesterday, yesterday],
+      "Last 7 Days": [last7DaysStart, today],
+      "Last 30 Days": [last30DaysStart, today],
+      "This Month": [firstDayOfThisMonth, lastDayOfThisMonth],
+      "Last Month": [firstDayOfLastMonth, lastDayOfLastMonth],
+    },
   };
+
   return (
     <>
       {/* Page Wrapper */}
@@ -230,6 +339,10 @@ const Manageusers = () => {
                           type="text"
                           className="form-control"
                           placeholder="Search User"
+                          value={searchTerm}
+                          onChange={(e) =>
+                            setSearchTerm(e.target.value.toLowerCase())
+                          }
                         />
                       </div>
                     </div>
@@ -291,25 +404,41 @@ const Manageusers = () => {
                         <div className="dropdown-menu  dropdown-menu-start">
                           <ul>
                             <li>
-                              <Link to="#" className="dropdown-item">
+                              <Link
+                                to="#"
+                                className="dropdown-item"
+                                onClick={() => handleSort("asc")}
+                              >
                                 <i className="ti ti-circle-chevron-right me-1" />
                                 Ascending
                               </Link>
                             </li>
                             <li>
-                              <Link to="#" className="dropdown-item">
+                              <Link
+                                to="#"
+                                className="dropdown-item"
+                                onClick={() => handleSort("desc")}
+                              >
                                 <i className="ti ti-circle-chevron-right me-1" />
                                 Descending
                               </Link>
                             </li>
                             <li>
-                              <Link to="#" className="dropdown-item">
+                              <Link
+                                to="#"
+                                className="dropdown-item"
+                                onClick={() => handleSort("recentlyViewed")}
+                              >
                                 <i className="ti ti-circle-chevron-right me-1" />
                                 Recently Viewed
                               </Link>
                             </li>
                             <li>
-                              <Link to="#" className="dropdown-item">
+                              <Link
+                                to="#"
+                                className="dropdown-item"
+                                onClick={() => handleSort("recentlyAdded")}
+                              >
                                 <i className="ti ti-circle-chevron-right me-1" />
                                 Recently Added
                               </Link>
@@ -321,10 +450,19 @@ const Manageusers = () => {
                         <span className="form-icon">
                           <i className="ti ti-calendar" />
                         </span>
-                        <DateRangePicker initialSettings={initialSettings}>
+                        <DateRangePicker
+                          initialSettings={initialSettings}
+                          onApply={(event, picker) => {
+                            setDateRange({
+                              start: picker.startDate.toDate(),
+                              end: picker.endDate.toDate(),
+                            });
+                          }}
+                        >
                           <input
                             className="form-control bookingrange"
                             type="text"
+                            // onChange={(e)=>handleDates(e)}
                           />
                         </DateRangePicker>
                       </div>
@@ -904,7 +1042,13 @@ const Manageusers = () => {
                   {/* /Filter */}
                   {/* Manage Users List */}
                   <div className="table-responsive custom-table">
-                    <Table columns={columns} dataSource={data} />
+                    <Table
+                      columns={columns}
+                      dataSource={filteredAndSortedData}
+                      // dataSource={data}
+                      pagination={pagination}
+                      onChange={handleTableChange}
+                    />
                   </div>
                   <div className="row align-items-center">
                     <div className="col-md-6">

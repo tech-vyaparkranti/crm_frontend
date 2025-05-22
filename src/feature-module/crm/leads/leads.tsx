@@ -175,7 +175,6 @@ const Leads = () => {
   };
 
   const handleTableChange = (pagination: any) => {
-    console.log(pagination, "ppp");
     setPagination((prev) => ({
       ...prev,
       current: pagination.current,
@@ -231,61 +230,6 @@ const filteredAndSortedData = data
   });
 
 
-  // useEffect(() => {
-  //   api
-  //     .get("/api/lead-data")
-  //     .then((response) => {
-  //       console.log(response.data,'dddd');
-  //       const formattedData = response.data.leads.data.map((lead: any) => ({
-  //         action: "update",
-  //         id: lead.id,
-  //         lead_name: lead.lead_name,
-  //         company_name: lead.company_name,
-  //         email: lead.email,
-  //         phone1: lead.phone1,
-  //         phone2: lead.phone2,
-  //         website_url: lead.website_url,
-  //         owner_name: lead.owner_name,
-  //         source: lead.source
-  //           ? { label: lead.source, value: lead.source }
-  //           : null,
-  //         industry: lead.industry
-  //           ? { label: lead.industry, value: lead.industry }
-  //           : null,
-  //         currency: lead.currency,
-  //         language: lead.language
-  //           ? { label: lead.language, value: lead.language }
-  //           : null,
-  //         description: lead.description,
-  //         address: {
-  //           street_address: lead.address?.street_address,
-  //           city: lead.address?.city,
-  //           state: lead.address?.state,
-  //           country: lead.address?.country
-  //             ? { label: lead.address.country, value: lead.address.country }
-  //             : null,
-  //           zip_code: lead.address?.zip_code,
-  //         },
-  //         access: lead.access,
-  //         image: lead.image || null,
-
-  //         // 🆕 Extra fields for display (not part of DataLead interface)
-  //         company_address: lead.address
-  //           ? `${lead.address.city}, ${lead.address.state}`
-  //           : "",
-  //         phone: lead.phone1,
-  //         status: lead.status,
-  //         created_date: new Date(lead.created_at).toLocaleDateString(),
-  //       }));
-
-  //       console.log(formattedData, "lead");
-  //       setTableData(formattedData);
-  //       setData(formattedData);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching leads:", error);
-  //     });
-  // }, [, isSubmitting]);
 
   const [stars, setStars] = useState<{ [key: number]: boolean }>({});
 
@@ -300,7 +244,7 @@ const filteredAndSortedData = data
     try {
       await api.delete(`/api/lead-delete/${id}`);
       alert("Lead deleted successfully.");
-      setIsSubmitting(true);
+      setIsSubmitting(!isSubmitting);
     } catch (error) {
       alert("Failed to delete the lead.");
       console.error(error);
@@ -321,7 +265,7 @@ const filteredAndSortedData = data
       },
     });
     alert("Leads uploaded successfully.");
-    setIsSubmitting(true); 
+      setIsSubmitting(!isSubmitting);
   } catch (error) {
     console.error("CSV Upload Failed:", error);
     alert("CSV upload failed. Check the console for more info.");
@@ -612,7 +556,7 @@ const filteredAndSortedData = data
         lead_name: "",
         id: null,
       });
-      setIsSubmitting(true);
+      setIsSubmitting(!isSubmitting);
       handleClose();
     } catch (error) {
       console.error("Submission error:", error);
@@ -660,7 +604,7 @@ const filteredAndSortedData = data
                             className="form-control"
                             placeholder="Search Leads"
                             value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+                            onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
                           />
                         </div>
                       </div>
@@ -1352,7 +1296,7 @@ const filteredAndSortedData = data
                     <div className="table-responsive custom-table">
                       <Table
                         columns={columns}
-                       dataSource={filteredAndSortedData}
+                        dataSource={filteredAndSortedData}
                         pagination={pagination}
                         onChange={handleTableChange}
                       />
@@ -1707,7 +1651,7 @@ const filteredAndSortedData = data
                               </div>
                             </div>
                           </div>
-                        )}
+                        )} 
 
                         <div className="col-md-12">
                           <div className="mb-3">
