@@ -82,6 +82,7 @@ const statusList: StatusOption[] = [
 
 
 
+
 const LeadsDetails = () => {
   const { id } = useParams();
   const statusOptions = ["connected", "not connected", "closed", "lost", "new"];
@@ -301,7 +302,43 @@ const handleSubmits = async (e: React.FormEvent) => {
   };
   // get notes lead end
 
- 
+ const [emailTo, setEmailTo] = useState('');
+const [emailCc, setEmailCc] = useState('');
+const [emailBcc, setEmailBcc] = useState('');
+const [emailSubject, setEmailSubject] = useState('');
+const [emailBody, setEmailBody] = useState('');
+const [emailAttachment, setEmailAttachment] = useState<File | null>(null);
+const [emailSending, setEmailSending] = useState(false);
+
+const handleSendEmail = async () => {
+  if (!emailTo || !emailSubject || !emailBody) {
+    alert('To, subject, and body are required');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('to', emailTo);
+  formData.append('subject', emailSubject);
+  formData.append('body', emailBody);
+
+  if (emailCc) formData.append('cc[]', emailCc);
+  if (emailBcc) formData.append('bcc[]', emailBcc);
+  if (emailAttachment) formData.append('attachment', emailAttachment);
+
+  setEmailSending(true);
+
+  try {
+    const response = await api.post('/api/send-email', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    alert('Email sent!');
+  } catch (err: any) {
+    console.error(err);
+    alert('Failed to send email: ' + (err.response?.data?.error || err.message));
+  } finally {
+    setEmailSending(false);
+  }
+};
 
 
   //  call log start
@@ -2253,72 +2290,41 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                   </div>
                   {/* /Files */}
                   {/* Email */}
-                  <div className="tab-pane fade" id="email">
-                    <div className="card">
-                      <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                        <h4 className="fw-semibold">Email</h4>
-                        <div className="d-inline-flex align-items-center">
-                          <OverlayTrigger
-                            placement="left"
-                            overlay={
-                              <Tooltip id="refresh-tooltip">
-                                There are no email accounts configured, Please
-                                configured your email account in order to Send/
-                                Create EMails
-                              </Tooltip>
-                            }
-                          >
-                            <Link to="#">
-                              <i className="ti ti-circle-plus me-1" />
-                              Create Email
-                            </Link>
-                          </OverlayTrigger>
-                          {/* <Link
-                        to="#"
-                        className="link-purple fw-medium"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="left"
-                        data-bs-custom-className="tooltip-dark"
-                        data-bs-original-title=""
-                      >
-                        <i className="ti ti-circle-plus me-1" />
-                        Create Email
-                      </Link> */}
-                        </div>
-                      </div>
-                      <div className="card-body">
-                        <div className="card border mb-0">
-                          <div className="card-body pb-0">
-                            <div className="row align-items-center">
-                              <div className="col-md-8">
-                                <div className="mb-3">
-                                  <h4 className="fw-medium mb-1">
-                                    Manage Emails
-                                  </h4>
-                                  <p>
-                                    You can send and reply to emails directly
-                                    via this section.
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-md-4 text-md-end">
-                                <div className="mb-3">
-                                  <Link
-                                    to="#"
-                                    className="btn btn-primary"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#create_email"
-                                  >
-                                    Connect Account
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <div className="card">
+  <div className="card-header">
+    <h4 className="fw-semibold">Send Email</h4>
+  </div>
+  <div className="card-body">
+    <div className="mb-3">
+      <label className="form-label">To</label>
+      <input type="email" className="form-control" value={emailTo} onChange={e => setEmailTo(e.target.value)} />
+    </div>
+    <div className="mb-3">
+      <label className="form-label">CC</label>
+      <input type="email" className="form-control" value={emailCc} onChange={e => setEmailCc(e.target.value)} />
+    </div>
+    <div className="mb-3">
+      <label className="form-label">BCC</label>
+      <input type="email" className="form-control" value={emailBcc} onChange={e => setEmailBcc(e.target.value)} />
+    </div>
+    <div className="mb-3">
+      <label className="form-label">Subject</label>
+      <input type="text" className="form-control" value={emailSubject} onChange={e => setEmailSubject(e.target.value)} />
+    </div>
+    <div className="mb-3">
+      <label className="form-label">Message</label>
+      <textarea className="form-control" value={emailBody} onChange={e => setEmailBody(e.target.value)} />
+    </div>
+    <div className="mb-3">
+      <label className="form-label">Attachment</label>
+      <input type="file" className="form-control" onChange={e => setEmailAttachment(e.target.files?.[0] || null)} />
+    </div>
+    <button className="btn btn-primary" onClick={handleSendEmail} disabled={emailSending}>
+      {emailSending ? 'Sending...' : 'Send Email'}
+    </button>
+  </div>
+</div>
+
                   {/* /Email */}
                 </div>
                 {/* /Tab Content */}
