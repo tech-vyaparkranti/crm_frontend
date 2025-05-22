@@ -226,6 +226,8 @@ const LeadsDashboard = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [lastPage, setLastPage] = useState<number>(1);
   const [filterDays, setFilterDays] = useState<number>(1);
+  const [dayLabel, setDayLabel] = useState('Today');
+
   useEffect(() => {
     fetchLeads(currentPage, filterDays);
   }, [filterDays, currentPage]);
@@ -244,8 +246,9 @@ const LeadsDashboard = () => {
     }
   };
 
-  const leadSorting = (days: number) => {
+  const leadSorting = (days: number ,label:string) => {
     setFilterDays(days);
+    setDayLabel(label);
   };
 
   return (
@@ -297,25 +300,32 @@ const LeadsDashboard = () => {
                         data-bs-toggle="dropdown"
                         to="#"
                       >
-                        <i className="ti ti-calendar-check me-2" />
-                        {/* Last {filterDays} Days */}
-                        Today
+                        <i className="ti ti-calendar-check me-2"/>
+                        {dayLabel}
                       </Link>
                       <div className="dropdown-menu dropdown-menu-end">
                         <Link
+                        className="dropdown-item"
+                        to="#"
+                        onClick={() => leadSorting(1 ,'Today')}
+                        >
+                        Today
+                      </Link>
+                        <Link
                           to="#"
                           className="dropdown-item"
-                          onClick={() => leadSorting(15)}
+                          onClick={() => leadSorting(15 ,'Last 15 days')}
                         >
                           Last 15 days
                         </Link>
                         <Link
                           to="#"
                           className="dropdown-item"
-                          onClick={() => leadSorting(30)}
+                          onClick={() => leadSorting(30 ,'Last 30 days')}
                         >
                           Last 30 days
                         </Link>
+                        
                       </div>
                     </div>
                   </div>
