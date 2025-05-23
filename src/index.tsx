@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { route_path } from "./environment";
+import '../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js';
+import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../src/style/css/feather.css";
 import "../src/index.scss";
@@ -18,6 +20,7 @@ import "../src/style/icon/tabler-icons/webfont/tabler-icons.css";
 import ALLRoutes from "./feature-module/router/router";
 import "../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 import { HelmetProvider } from 'react-helmet-async'
+ 
 // import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // const GOOGLE_CLIENT_ID = "377607815276-3lmi4k75ka43p6bea8n6domv8p0o63bk.apps.googleusercontent.com";

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Table from "../../core/common/dataTable/index";
 import Select from "react-select";
 import DateRangePicker from "react-bootstrap-daterangepicker";
@@ -6,11 +6,24 @@ import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../core/common/imageWithBasePath";
 import { manageusersData } from "../../core/data/json/manageuser";
 import CollapseHeader from "../../core/common/collapse-header";
-import { orgUserData } from "./orgUserInterface";
-import { OrgUser } from "../../api/modules/getOrgUser";
+import { userInsert, orgUserData } from "./orgUserInterface";
+import { OrgUser } from "../../api/modules/organization-User/getOrgUser";
+import { postOrgUser } from "../../api/modules/organization-User/postOrgUser";
+import MessageModal from "../crm/commonComponent/MessageModal";
+import { deleteOrgUser } from "../../api/modules/organization-User/deleteUser";
+import { downloadOrganization } from "../crm/leads/utils/downloadOrganizationUser";
+
 
 const Manageusers = () => {
+
+  const [modal, setModal] = useState({
+    show: false,
+    type: 'success' as 'success' | 'error',
+    message: '',
+  });
+  const [refresh , setRefresh] = useState(false);
   const [sort, setShort] = useState("");
+  const [totalUser , setTotalUser] = useState(0);
   const [dateRange, setDateRange] = useState<{
     start: Date | null;
     end: Date | null;
@@ -43,11 +56,30 @@ const Manageusers = () => {
     pageSize: 10,
     total: 0,
   });
+const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
+  
+
+  const initialUser = {
+    name :"",
+    email:"" ,
+    department: "",
+    designation : "",
+    emp_id : "",
+    password : "",
+    phone :  0 ,
+    status : "",
+    org_id : 0,
+    image : null,
+    role : "",
+    action : "insert",
+  }
+  const [user,setUser] = useState<userInsert>(initialUser)
+
   useEffect(() => {
     fetchUserData(pagination.current);
-  }, [pagination.current]);
+  }, [pagination.current ,refresh]);
 
   const fetchUserData = async (page: any) => {
     const response = await OrgUser(page);
@@ -58,18 +90,11 @@ const Manageusers = () => {
       pageSize: response.per_page,
       total: response.total,
     });
+    setTotalUser(response.total);
   };
 
   const handleSort = (value: string) => {
     setShort(value);
-  };
-  const handleDates = (event: any) => {
-    const picker = event.target.daterangepicker;
-
-    setDateRange({
-      start: picker.startDate.toDate(),
-      end: picker.endDate.toDate(),
-    });
   };
 
   const filteredAndSortedData = data
@@ -118,6 +143,8 @@ const Manageusers = () => {
   ];
 
   const [passwords, setPasswords] = useState([false, false]);
+  const [deleteUser, setDeleteUser] = useState(null);
+const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const togglePassword = (index: any) => {
     const updatedPasswords = [...passwords];
@@ -228,7 +255,7 @@ const Manageusers = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: () => (
+      render: (_: any, record: any) => (
         <div className="dropdown table-action">
           <Link
             to="#"
@@ -239,23 +266,36 @@ const Manageusers = () => {
             <i className="fa fa-ellipsis-v" />
           </Link>
           <div className="dropdown-menu dropdown-menu-right">
-            <Link
+            {/* <Link
               className="dropdown-item"
               to="#"
-              data-bs-target="#offcanvas_edit"
+              data-bs-target="#offcanvas_add"
               data-bs-toggle="offcanvas"
             >
               <i className="ti ti-edit text-blue" /> Edit
-            </Link>
+            </Link> */}
 
-            <Link
+            <button           // use <button>, keeps focus
+          className="dropdown-item"
+          onClick={() => handleEdit(record)}
+        >
+          <i className="ti ti-edit text-blue" /> Edit
+        </button>
+
+            {/* <Link
               className="dropdown-item"
               to="#"
               data-bs-toggle="modal"
               data-bs-target="#delete_contact"
             >
               <i className="ti ti-trash text-danger"></i> Delete
-            </Link>
+            </Link> */}
+            <button           // use <button>, keeps focus
+          className="dropdown-item"
+          onClick={() => handleDelete(record)}
+        >
+          <i className="ti ti-trash text-danger" /> Delete
+        </button>
           </div>
         </div>
       ),
@@ -303,6 +343,93 @@ const Manageusers = () => {
     },
   };
 
+  const handleChange = (e :React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if(e.target.type === "file")
+    {
+      const target = e.target as HTMLInputElement;
+      setUser((prev) => ({
+        ...prev,
+        [e.target.name]: target.files ? target.files[0] : null,
+      }));
+    }
+    else {
+        setUser((prev)=>({...prev,[e.target.name]:e.target.value}))
+    }
+  }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+          const data = new FormData();
+          Object.entries(user).forEach(([key, value]) => {
+            data.append(key, value as string | Blob);
+          });
+          const response : any = await postOrgUser(data);
+          if(response.success === false)
+          {
+            // setModal({
+            //   show: true,
+            //   type: 'error',
+            //   message: response.firstError || response.message || 'Something went wrong.',
+            // });
+            alert(response.firstError);
+          }
+          else {
+              // setModal({ show: true, type: 'success', message: 'Organization user save successfully!' });
+              alert("Organization user save successfully!");
+              
+              setRefresh(!refresh);
+              setUser(initialUser);
+              const offcanvasElement = document.getElementById('offcanvas_add');
+              if (offcanvasElement && (window as any).bootstrap) {
+                const bsOffcanvas = (window as any).bootstrap.Offcanvas.getInstance(offcanvasElement);
+                bsOffcanvas?.hide();
+              }
+          }
+     
+  }
+
+  const offcanvasId  = 'offcanvas_add';
+
+const handleEdit = (record: any) => {
+  setUser({
+    ...initialUser,
+    ...record,
+    password: '',
+    action: 'update'
+  });
+
+   setTimeout(() => {
+  const triggerBtn = document.getElementById('triggerOffcanvasBtn');
+  if (triggerBtn) {
+    triggerBtn.click();
+  }
+  },100)
+}
+
+const handleDelete = (record: any) => {
+  setDeleteUser(record.id);
+  setShowDeleteModal(true);
+}
+
+const confirmDelete = async () => {
+  if (!deleteUser) return;
+
+  const response : any = await deleteOrgUser(deleteUser)
+  if(response.status === false)
+  {
+    alert(response.message);
+  }else{
+    alert(response.data.message)
+     setShowDeleteModal(false);
+     setDeleteUser(deleteUser);
+     setRefresh(!refresh);
+  }
+};
+
+const handleExport = async () => 
+{
+    const response = await downloadOrganization()
+}
+
   return (
     <>
       {/* Page Wrapper */}
@@ -315,7 +442,7 @@ const Manageusers = () => {
                 <div className="row align-items-center">
                   <div className="col-8">
                     <h4 className="page-title">
-                      User<span className="count-title">123</span>
+                      User<span className="count-title">{totalUser}</span>
                     </h4>
                   </div>
                   <div className="col-4 text-end">
@@ -359,14 +486,14 @@ const Manageusers = () => {
                           </Link>
                           <div className="dropdown-menu  dropdown-menu-end">
                             <ul>
-                              <li>
+                              {/* <li>
                                 <Link to="#" className="dropdown-item">
                                   <i className="ti ti-file-type-pdf text-danger me-1" />
                                   Export as PDF
                                 </Link>
-                              </li>
+                              </li> */}
                               <li>
-                                <Link to="#" className="dropdown-item">
+                                <Link to="#" className="dropdown-item" onClick={handleExport}>
                                   <i className="ti ti-file-type-xls text-green me-1" />
                                   Export as Excel{" "}
                                 </Link>
@@ -379,6 +506,8 @@ const Manageusers = () => {
                           className="btn btn-primary"
                           data-bs-toggle="offcanvas"
                           data-bs-target="#offcanvas_add"
+                          id="triggerOffcanvasBtn"
+
                         >
                           <i className="ti ti-square-rounded-plus me-2" />
                           Add user
@@ -1079,12 +1208,13 @@ const Manageusers = () => {
             className="btn-close custom-btn-close border p-1 me-0 d-flex align-items-center justify-content-center rounded-circle"
             data-bs-dismiss="offcanvas"
             aria-label="Close"
+            id = "offcanvas_close"
           >
             <i className="ti ti-x" />
           </button>
         </div>
         <div className="offcanvas-body">
-          <form>
+          <form onSubmit={handleSubmit}>
             <div>
               {/* Basic Info */}
               <div>
@@ -1098,7 +1228,7 @@ const Manageusers = () => {
                       </div>
                       <div className="upload-content">
                         <div className="upload-btn">
-                          <input type="file" />
+                          <input type="file" name="image" onChange={handleChange}/>
                           <span>
                             <i className="ti ti-file-broken" />
                             Upload File
@@ -1114,24 +1244,17 @@ const Manageusers = () => {
                         {" "}
                         Name <span className="text-danger">*</span>
                       </label>
-                      <input type="text" className="form-control" />
+                      <input type="text" className="form-control" name="name" onChange={handleChange} value={user.name}/>
                     </div>
                   </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="col-form-label">
-                        User Name <span className="text-danger">*</span>
-                      </label>
-                      <input type="text" className="form-control" />
-                    </div>
-                  </div>
+                  
                   <div className="col-md-6">
                     <div className="mb-3">
                       <div className="d-flex justify-content-between align-items-center">
                         <label className="col-form-label">
                           Email <span className="text-danger">*</span>
                         </label>
-                        <div className="status-toggle small-toggle-btn d-flex align-items-center">
+                        {/* <div className="status-toggle small-toggle-btn d-flex align-items-center">
                           <span className="me-2 label-text">Email Opt Out</span>
                           <input
                             type="checkbox"
@@ -1140,33 +1263,42 @@ const Manageusers = () => {
                             defaultChecked
                           />
                           <label htmlFor="user1" className="checktoggle" />
-                        </div>
+                        </div> */}
                       </div>
-                      <input type="text" className="form-control" />
+                      <input type="text" className="form-control" name="email" onChange={handleChange} value={user.email || ""}/>
                     </div>
                   </div>
                   <div className="col-md-6">
                     <div className="mb-3">
                       <label className="col-form-label">
-                        Role <span className="text-danger">*</span>
+                        Department <span className="text-danger">*</span>
                       </label>
-                      <input type="text" className="form-control" />
+                      <input type="text" className="form-control" name="department" onChange={handleChange} value={user.department || ""}/>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <label className="col-form-label">Designation</label>
+                      <input type="text" className="form-control" name="designation" onChange={handleChange} value={user.designation || ""}/>
                     </div>
                   </div>
                   <div className="col-md-6">
                     <div className="mb-3">
                       <label className="col-form-label">
-                        Phone 1 <span className="text-danger">*</span>
+                        Role (user / admin etc..)<span className="text-danger">*</span>
                       </label>
-                      <input type="text" className="form-control" />
+                      <input type="text" className="form-control" name="role" onChange={handleChange} value={user.role || ""}/>
                     </div>
                   </div>
                   <div className="col-md-6">
                     <div className="mb-3">
-                      <label className="col-form-label">Phone 2</label>
-                      <input type="text" className="form-control" />
+                      <label className="col-form-label">
+                        Phone <span className="text-danger">*</span>
+                      </label>
+                      <input type="text" className="form-control" name="phone" onChange={handleChange} value={user.phone || ""}/>
                     </div>
                   </div>
+                  
                   <div className="col-md-6">
                     <div className="mb-3">
                       <label className="col-form-label">
@@ -1176,11 +1308,13 @@ const Manageusers = () => {
                         <span className="form-icon">
                           <i className="ti ti-eye-off" />
                         </span>
-                        <input type="password" className="form-control" />
+                        <input type="password" className="form-control" name="password" onChange={handleChange}/>
                       </div>
                     </div>
                   </div>
-                  <div className="col-md-6">
+                  {
+                    user.action === "insert" && 
+                    <div className="col-md-6">
                     <div className="mb-3">
                       <label className="col-form-label">
                         Repeat Password <span className="text-danger">*</span>
@@ -1189,20 +1323,23 @@ const Manageusers = () => {
                         <span className="form-icon">
                           <i className="ti ti-eye-off" />
                         </span>
-                        <input type="password" className="form-control" />
+                        <input type="password" className="form-control" name="confirm_password" onChange={handleChange}/>
                       </div>
                     </div>
                   </div>
+                  }
+                  
                   <div className="col-md-6">
                     <div className="mb-3">
                       <label className="col-form-label">
-                        Location <span className="text-danger">*</span>
+                        Employee Id <span className="text-danger">*</span>
                       </label>
-                      <Select
+                      <input type="text" className="form-control" name="emp_id" onChange={handleChange} value={user.emp_id || ""}/>
+                      {/* <Select
                         classNamePrefix="react-select"
                         className="select"
                         options={options2}
-                      />
+                      /> */}
                     </div>
                   </div>
                   <div className="col-md-6">
@@ -1215,7 +1352,9 @@ const Manageusers = () => {
                             className="status-radio"
                             id="active1"
                             name="status"
-                            defaultChecked
+                            value="active"
+                            checked = {user.status == "active" ? true : false}
+                            onChange={handleChange}
                           />
                           <label htmlFor="active1">Active</label>
                         </div>
@@ -1225,6 +1364,9 @@ const Manageusers = () => {
                             className="status-radio"
                             id="inactive1"
                             name="status"
+                            value="inactive"
+                            checked = {user.status == "inactive" ? true : false}
+                            onChange={handleChange}
                           />
                           <label htmlFor="inactive1">Inactive</label>
                         </div>
@@ -1243,13 +1385,14 @@ const Manageusers = () => {
               >
                 Cancel
               </Link>
-              <button type="button" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary">
                 Create
               </button>
             </div>
           </form>
         </div>
       </div>
+     
       {/* /Add User */}
       {/* Edit User */}
       <div
@@ -1486,6 +1629,7 @@ const Manageusers = () => {
       </div>
       {/* /Edit User */}
       {/* Delete User */}
+      {/* {showDeleteModal && (
       <div className="modal fade" id="delete_contact" role="dialog">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -1513,6 +1657,43 @@ const Manageusers = () => {
           </div>
         </div>
       </div>
+      )} */}
+      {showDeleteModal && (
+  <div className="modal-backdrop show">
+    <div className="modal fade show d-block" role="dialog">
+      <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-body">
+            <div className="text-center">
+              <div className="avatar avatar-xl bg-danger-light rounded-circle mb-3">
+                <i className="ti ti-trash-x fs-36 text-danger" />
+              </div>
+              <h4 className="mb-2">Remove user?</h4>
+              <p className="mb-0">Are you sure you want to remove this user?</p>
+              <div className="d-flex align-items-center justify-content-center mt-4">
+                <button
+                  type="button"
+                  className="btn btn-light me-2"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={confirmDelete}
+                >
+                  Yes, Delete it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       {/* /Delete User */}
     </>
   );

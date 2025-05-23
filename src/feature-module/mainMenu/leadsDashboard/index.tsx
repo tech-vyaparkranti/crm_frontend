@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import DateRangePicker from "react-bootstrap-daterangepicker";
 import Chart from "react-apexcharts";
-import ApexCharts from 'apexcharts'
+import ApexCharts from "apexcharts";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../router/all_routes";
 import CollapseHeader from "../../../core/common/collapse-header";
@@ -12,33 +12,66 @@ import { Lead, PaginatedResponse } from "./LeadInterface";
 const route = all_routes;
 
 const LeadsDashboard = () => {
-  
-  const [chartOptions] = useState<any>({
-    series: [
-      {
-        data: [400, 220, 448],
-        color: "#FC0027",
+  const sourceLabels = [
+  "Phone Calls",
+  "Social Media",
+  "Referral Sites",
+  "Web Analytics",
+  "Previous Purchases",
+  "Other"
+];
+
+const [chartOptions, setChartOptions] = useState<any>({
+  series: [],
+  chart: {
+    type: "pie",
+    height: 300,
+  },
+  labels: [], // Will be set dynamically
+  legend: {
+    position: "bottom",
+  },
+  responsive: [
+    {
+      breakpoint: 480,
+      options: {
+        chart: {
+          width: 250,
+        },
+        legend: {
+          position: "bottom",
+        },
       },
-    ],
-    chart: {
-      type: "bar",
-      height: 150,
     },
-    plotOptions: {
-      bar: {
-        horizontal: true,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    xaxis: {
-      categories: ["Conversation", "Follow Up", "Inpipeline"],
-      min: 0,
-      max: 500,
-      tickAmount: 5,
-    },
-  });
+  ],
+});
+
+  // const [chartOptions] = useState<any>({
+  //   series: [
+  //     {
+  //       data: [400, 220, 448],
+  //       color: "#FC0027",
+  //     },
+  //   ],
+  //   chart: {
+  //     type: "bar",
+  //     height: 150,
+  //   },
+  //   plotOptions: {
+  //     bar: {
+  //       horizontal: true,
+  //     },
+  //   },
+  //   dataLabels: {
+  //     enabled: false,
+  //   },
+  //   xaxis: {
+  //     categories: ["Conversation", "Follow Up", "Inpipeline"],
+  //     min: 0,
+  //     max: 500,
+  //     tickAmount: 5,
+  //   },
+  // });
   const [chartOptions2] = useState<any>({
     series: [
       {
@@ -65,33 +98,33 @@ const LeadsDashboard = () => {
       tickAmount: 5,
     },
   });
-  const [chartOptions3] = useState<any>({
-    series: [44, 55, 13, 43],
-    options: {
-      chart: {
-        width: 400,
-        height: 300,
-        type: "pie",
-      },
-      legend: {
-        position: "bottom",
-      },
-      labels: ["Inpipeline", "Follow Up", "Schedule Service", "Conversation"],
-      responsive: [
-        {
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 275,
-            },
-            legend: {
-              position: "bottom",
-            },
-          },
-        },
-      ],
-    },
-  });
+  // const [chartOptions3] = useState<any>({
+  //   series: [44, 55, 13, 43],
+  //   options: {
+  //     chart: {
+  //       width: 400,
+  //       height: 300,
+  //       type: "pie",
+  //     },
+  //     legend: {
+  //       position: "bottom",
+  //     },
+  //     labels: ["Inpipeline", "Follow Up", "Schedule Service", "Conversation"],
+  //     responsive: [
+  //       {
+  //         breakpoint: 480,
+  //         options: {
+  //           chart: {
+  //             width: 275,
+  //           },
+  //           legend: {
+  //             position: "bottom",
+  //           },
+  //         },
+  //       },
+  //     ],
+  //   },
+  // });
 
   // const chartElement = document.querySelector("#leadpiechart");
   // if (chartElement) {
@@ -139,94 +172,184 @@ const LeadsDashboard = () => {
   //     ],
   //   },
   // });
-  const [chartOptions4] = useState<any>({
-    series: [
-      {
-        name: "Reports",
-        data: [40, 30, 20, 30, 22, 20, 30, 20, 22, 30, 15, 20],
-      },
-    ],
-    colors: ["#4A00E5"],
+  // const [chartOptions4] = useState<any>({
+  //   series: [
+  //     {
+  //       name: "Reports",
+  //       data: [40, 30, 20, 30, 22, 20, 30, 20, 22, 30, 15, 20],
+  //     },
+  //   ],
+  //   colors: ["#4A00E5"],
+  //   chart: {
+  //     height: 273,
+  //     type: "area",
+  //     zoom: {
+  //       enabled: false,
+  //     },
+  //   },
+  //   dataLabels: {
+  //     enabled: false,
+  //   },
+  //   title: {
+  //     text: "",
+  //     align: "left",
+  //   },
+  //   xaxis: {
+  //     categories: [
+  //       "Jan",
+  //       "Feb",
+  //       "Mar",
+  //       "Apr",
+  //       "May",
+  //       "Jun",
+  //       "Jul",
+  //       "Aug",
+  //       "Sep",
+  //       "Oct",
+  //       "Nov",
+  //       "Dec",
+  //     ],
+  //   },
+  //   yaxis: {
+  //     min: 10,
+  //     max: 60,
+  //     tickAmount: 5,
+  //   },
+  //   legend: {
+  //     position: "top",
+  //     horizontalAlign: "left",
+  //   },
+  // });
+  const industryOptions = [
+    { value: "Website Development", label: "Website" },
+    { value: "Hosting", label: "Hosting" },
+    { value: "Digital Marketing", label: "Digital Marketing" },
+    { value: "Hotel Revenue", label: "Hotel Revenue" },
+    { value: "App Development", label: "App Development" },
+    { value: "Other", label: "Other" },
+  ];
+
+  const [chartOptions4, setChartOptions4] = useState<any>({
+    series: [],
     chart: {
       height: 273,
-      type: "area",
-      zoom: {
-        enabled: false,
+      type: "bar",
+      zoom: { enabled: false },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: "50%",
+        borderRadius: 4,
+        distributed: true,
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
-    title: {
-      text: "",
-      align: "left",
-    },
+    colors: [
+      "#4A00E5",
+      "#00BFFF",
+      "#28A745",
+      "#FFC107",
+      "#FF5733",
+      "#9C27B0",
+      "#FF33A6",
+    ],
+    dataLabels: { enabled: false },
+    title: { text: "", align: "left" },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: [],
+      labels: { style: { fontSize: "14px" } },
     },
     yaxis: {
-      min: 10,
-      max: 60,
-      tickAmount: 5,
+      min: 0,
+      labels: { style: { fontSize: "14px" } },
     },
-    legend: {
-      position: "top",
-      horizontalAlign: "left",
-    },
+    legend: { show: false }, // Hide legend when bars are individually colored
   });
 
+  const [dateRange, setDateRange] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({
+    start: null,
+    end: null,
+  });
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  const last7DaysStart = new Date(today);
+  last7DaysStart.setDate(today.getDate() - 6); // 7 days including today
+
+  const last30DaysStart = new Date(today);
+  last30DaysStart.setDate(today.getDate() - 29); // 30 days including today
+
+  const firstDayOfThisMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+  const lastDayOfThisMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    0
+  );
+
+  const firstDayOfLastMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() - 1,
+    1
+  );
+  const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+
   const initialSettings = {
-    endDate: new Date("2020-08-11T12:30:00.000Z"),
-    ranges: {
-      "Last 30 Days": [
-        new Date("2020-07-12T04:57:17.076Z"),
-        new Date("2020-08-10T04:57:17.076Z"),
-      ],
-      "Last 7 Days": [
-        new Date("2020-08-04T04:57:17.076Z"),
-        new Date("2020-08-10T04:57:17.076Z"),
-      ],
-      "Last Month": [
-        new Date("2020-06-30T18:30:00.000Z"),
-        new Date("2020-07-31T18:29:59.999Z"),
-      ],
-      "This Month": [
-        new Date("2020-07-31T18:30:00.000Z"),
-        new Date("2020-08-31T18:29:59.999Z"),
-      ],
-      Today: [
-        new Date("2020-08-10T04:57:17.076Z"),
-        new Date("2020-08-10T04:57:17.076Z"),
-      ],
-      Yesterday: [
-        new Date("2020-08-09T04:57:17.076Z"),
-        new Date("2020-08-09T04:57:17.076Z"),
-      ],
-    },
-    startDate: new Date("2020-08-04T04:57:17.076Z"), // Set "Last 7 Days" as default
+    startDate: last7DaysStart,
+    endDate: today,
     timePicker: false,
+    ranges: {
+      Today: [today, today],
+      Yesterday: [yesterday, yesterday],
+      "Last 7 Days": [last7DaysStart, today],
+      "Last 30 Days": [last30DaysStart, today],
+      "This Month": [firstDayOfThisMonth, lastDayOfThisMonth],
+      "Last Month": [firstDayOfLastMonth, lastDayOfLastMonth],
+    },
   };
 
-
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [allLeads ,setAllLeads] = useState();
+  const [allLeads, setAllLeads] = useState();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [lastPage, setLastPage] = useState<number>(1);
-  const [filterDays, setFilterDays] = useState<number>(1);
-  const [dayLabel, setDayLabel] = useState('Today');
+  const [filterDays, setFilterDays] = useState<number>(30);
+  const [dayLabel, setDayLabel] = useState("last 30 days");
+  const leadStatuses = ["connected", "not connected", "closed", "lost", "new"];
+
+  const [chartOptions3, setChartOptions3] = useState<any>({
+    series: [], // initial empty series
+    options: {
+      chart: {
+        width: 400,
+        height: 300,
+        type: "pie",
+      },
+      legend: {
+        position: "bottom",
+      },
+      labels: [],
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            chart: {
+              width: 275,
+            },
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      ],
+    },
+  });
 
   useEffect(() => {
     fetchLeads(currentPage, filterDays);
@@ -241,12 +364,76 @@ const LeadsDashboard = () => {
       setLeads(response.data.leads.data);
       setCurrentPage(response.data.leads.current_page);
       setLastPage(response.data.leads.last_page);
+      const totalLeads = response.data.allLeads;
+      const statusCounts: Record<string, number> = {};
+
+      leadStatuses.forEach((status) => {
+        statusCounts[status] = 0;
+      });
+
+      totalLeads.forEach((lead: any) => {
+        const status = lead.status ? lead.status.toLowerCase().trim() : "";
+        if (leadStatuses.includes(status)) {
+          statusCounts[status]++;
+        } else {
+          console.warn(`Unknown status found: "${lead.status}"`);
+        }
+      });
+
+      const newSeries  = leadStatuses.map((status) => statusCounts[status]);
+
+      setChartOptions3((prev: any) => ({
+        ...prev,
+        series : newSeries,
+        options: {
+          ...prev.options,
+          labels: leadStatuses,
+        },
+      }));
+
+      const industryCounts = industryOptions.map(({ value }) => {
+        return totalLeads.filter(
+          (totalLeads: any) =>
+            totalLeads.industry &&
+            totalLeads.industry.toLowerCase().trim() ===
+              value.toLowerCase().trim()
+        ).length;
+      });
+
+      setChartOptions4((prev: any) => ({
+        ...prev,
+        series: [{ name: "Reports", data: industryCounts }],
+        xaxis: {
+          ...prev.xaxis,
+          categories: industryOptions.map((opt) => opt.label),
+        },
+      }));
+
+      const sourceCounts: Record<string, number> = {};
+    sourceLabels.forEach(label => {
+      sourceCounts[label] = 0;
+    });
+
+    totalLeads.forEach((lead: any) => {
+      const source = lead.source?.trim();
+      if (sourceLabels.includes(source)) {
+        sourceCounts[source]++;
+      }
+    });
+
+    const series = sourceLabels.map(label => sourceCounts[label]);
+
+    setChartOptions((prev: any) => ({
+      ...prev,
+      series,
+      labels: sourceLabels,
+    }));
     } catch (error) {
       console.error("Failed to fetch leads", error);
     }
   };
 
-  const leadSorting = (days: number ,label:string) => {
+  const leadSorting = (days: number, label: string) => {
     setFilterDays(days);
     setDayLabel(label);
   };
@@ -263,12 +450,17 @@ const LeadsDashboard = () => {
                   <div className="col-md-4">
                     <h3 className="page-title">Leads Dashboard</h3>
                   </div>
-                  <div className="col-md-8 float-end ms-auto">
+                  {/* <div className="col-md-8 float-end ms-auto">
                     <div className="d-flex title-head">
                       <div className="daterange-picker d-flex align-items-center justify-content-center">
                         <div className="form-sort me-2">
                           <i className="ti ti-calendar" />
-                          <DateRangePicker initialSettings={initialSettings}>
+                          <DateRangePicker initialSettings={initialSettings} onApply={(event, picker) => {
+                            setDateRange({
+                              start: picker.startDate.toDate(),
+                              end: picker.endDate.toDate(),
+                            });
+                          }}>
                             <input
                               className="form-control bookingrange"
                               type="text"
@@ -280,13 +472,16 @@ const LeadsDashboard = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
           </div>
           <div className="row align-items-start">
-            <div className="col-md-7" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <div
+              className="col-md-7"
+              style={{ display: "flex", flexDirection: "column", flex: 1 }}
+            >
               <div className="card">
                 <div className="card-header border-0 pb-0">
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
@@ -300,32 +495,31 @@ const LeadsDashboard = () => {
                         data-bs-toggle="dropdown"
                         to="#"
                       >
-                        <i className="ti ti-calendar-check me-2"/>
+                        <i className="ti ti-calendar-check me-2" />
                         {dayLabel}
                       </Link>
                       <div className="dropdown-menu dropdown-menu-end">
                         <Link
-                        className="dropdown-item"
-                        to="#"
-                        onClick={() => leadSorting(1 ,'Today')}
+                          className="dropdown-item"
+                          to="#"
+                          onClick={() => leadSorting(1, "Today")}
                         >
-                        Today
-                      </Link>
+                          Today
+                        </Link>
                         <Link
                           to="#"
                           className="dropdown-item"
-                          onClick={() => leadSorting(15 ,'Last 15 days')}
+                          onClick={() => leadSorting(15, "Last 15 days")}
                         >
                           Last 15 days
                         </Link>
                         <Link
                           to="#"
                           className="dropdown-item"
-                          onClick={() => leadSorting(30 ,'Last 30 days')}
+                          onClick={() => leadSorting(30, "Last 30 days")}
                         >
                           Last 30 days
                         </Link>
-                        
                       </div>
                     </div>
                   </div>
@@ -559,9 +753,9 @@ const LeadsDashboard = () => {
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h4>
                       <i className="ti ti-grip-vertical me-1" />
-                      Projects By Stage
+                      Leads According Status
                     </h4>
-                    <div className="dropdown">
+                    {/* <div className="dropdown">
                       <Link
                         className="dropdown-toggle"
                         data-bs-toggle="dropdown"
@@ -580,10 +774,13 @@ const LeadsDashboard = () => {
                           Last 7 Days
                         </Link>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
-                <div className="card-body" style={{ height: "auto", padding: "1rem" }}>
+                <div
+                  className="card-body"
+                  style={{ height: "auto", padding: "1rem" }}
+                >
                   <div id="leadpiechart">
                     {/* <Chart
                       options={chartOptions3.options}
@@ -592,13 +789,15 @@ const LeadsDashboard = () => {
                       width={chartOptions3.options.chart.width}
                       height={chartOptions3.options.chart.height}
                     /> */}
-                    <Chart
-    options={chartOptions3.options}
-    series={chartOptions3.series}
-    type="pie"
-    width={chartOptions3.options.chart.width}
-    height={chartOptions3.options.chart.height}
-  />
+                    {chartOptions3.series.length > 0 && (
+                      <Chart
+                        options={chartOptions3.options}
+                        series={chartOptions3.series}
+                        type="pie"
+                        width={chartOptions3.options.chart.width}
+                        height={chartOptions3.options.chart.height}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -611,9 +810,9 @@ const LeadsDashboard = () => {
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h4>
                       <i className="ti ti-grip-vertical me-1" />
-                      Projects By Stage
+                      Leads According Industry
                     </h4>
-                    <div className="d-flex align-items-center flex-wrap row-gap-2">
+                    {/* <div className="d-flex align-items-center flex-wrap row-gap-2">
                       <div className="dropdown me-2">
                         <Link
                           className="dropdown-toggle"
@@ -660,7 +859,7 @@ const LeadsDashboard = () => {
                           </Link>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 <div className="card-body">
@@ -668,7 +867,7 @@ const LeadsDashboard = () => {
                     <Chart
                       options={chartOptions4}
                       series={chartOptions4.series}
-                      type="area"
+                      type="bar"
                       height={chartOptions4.chart.height}
                     />
                   </div>
@@ -681,9 +880,9 @@ const LeadsDashboard = () => {
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h4>
                       <i className="ti ti-grip-vertical me-1" />
-                      Leads By Stage
+                      Leads According Sources
                     </h4>
-                    <div className="d-flex align-items-center flex-wrap row-gap-2">
+                    {/* <div className="d-flex align-items-center flex-wrap row-gap-2">
                       <div className="dropdown me-2">
                         <Link
                           className="dropdown-toggle"
@@ -730,17 +929,20 @@ const LeadsDashboard = () => {
                           </Link>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 <div className="card-body">
                   <div id="last-chart">
+                     {chartOptions.series.length > 0 && (
                     <Chart
-                      options={chartOptions}
-                      series={chartOptions.series}
-                      type={chartOptions.chart.type}
-                      height={chartOptions.chart.height}
-                    />
+                        options={chartOptions}
+                        series={chartOptions.series}
+                        type={chartOptions.chart.type}
+                        height={chartOptions.chart.height}
+                      />
+                     )}
+
                   </div>
                 </div>
               </div>

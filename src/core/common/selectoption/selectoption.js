@@ -58,11 +58,11 @@ export const optionschoose = [
   ];
   export const optionindustry = [
     { value: 'Choose', label: 'Choose' },
-    { value: 'Retail Industry', label: 'Retail Industry' },
-    { value: 'Banking', label: 'Banking' },
-    { value: 'Hotels', label: 'Hotels' },
-    { value: 'Financial Services', label: 'Financial Services' },
-    { value: 'Insurance', label: 'Insurance' },
+    { value: 'Website Development', label: 'Website Development' },
+    { value: 'Hosting', label: 'Hosting' },
+    { value: 'Digital Marketing', label: 'Digital Marketing' },
+    { value: 'Hotel Revenue', label: 'Hotel Revenue' },
+    { value: 'App Development', label: 'App Development' },
     { value: 'Other', label: 'Other' },
   ];
   export const optiondeals = [
