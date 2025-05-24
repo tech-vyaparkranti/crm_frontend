@@ -8,7 +8,7 @@ const  Email = () => {
     <div className="page-header">
       <div className="row">
         <div className="col">
-          <h3 className="page-title">Inbox</h3>
+          <h3 className="page-title">Inbox1</h3>
         </div>
       </div>
     </div>

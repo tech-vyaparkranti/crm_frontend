@@ -32,6 +32,46 @@ import { CallLog, getCallLogData } from "../../../api/modules/getCallLogData";
 import { NotesLog, getNotesLead } from "../../../api/modules/getNotesLead";
 import {postNotesLead} from '../../../api/modules/postNotesLead';
 import { postLeadStatus } from "../../../api/modules/postLeadStatus";
+import { getLeadActivities } from "../../../api/modules/getLeadAcitivities";
+// import { LeadActivityes } from './../../../api/modules/getLeadAcitivities';
+
+
+
+ interface User {
+  id: number;
+  name: string;
+  avatar?: string;
+}
+
+interface CallLoges {
+  type: string;
+  id: number;
+  lead_id: number;
+  user_id: number;
+  user: User;
+  status: string;
+  note: string;
+  follow_up_date: string;
+  created_at: string;
+}
+
+interface Notes {
+  type: string;
+  id: number;
+  lead_id: number;
+  title: string;
+  notes_description: string;
+  file_path: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Union type for the activities
+type LeadActivityes = CallLoges | Notes;
+
+// interface YourComponentProps {
+//   leadId: number;
+// }
 const route = all_routes;
 
 
@@ -62,6 +102,10 @@ interface LeadNotesFormProps {
   };
 }
 
+interface ComponentProps {
+  leadId: number; // If leadId comes from props
+}
+
 interface LeadType {
   id: number;
   status: string;
@@ -82,7 +126,8 @@ const statusList: StatusOption[] = [
 
 
 
-const LeadsDetails = () => {
+
+const LeadsDetails: React.FC = () => {
   const { id } = useParams();
   const statusOptions = ["connected", "not connected", "closed", "lost", "new"];
   const navigate = useNavigate();
@@ -91,6 +136,32 @@ const LeadsDetails = () => {
   const [addcomment, setAddComment] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
    const [update, setUpdate] = useState(false);
+   const [emailTo, setEmailTo] = useState('');
+const [emailCc, setEmailCc] = useState('');
+const [emailBcc, setEmailBcc] = useState('');
+const [emailSubject, setEmailSubject] = useState('');
+const [emailBody, setEmailBody] = useState('');
+const [emailAttachment, setEmailAttachment] = useState<File | null>(null);
+const [emailSending, setEmailSending] = useState(false);
+ const [status, setStatus] = useState<StatusOption | null>(null);
+  const [followUpDate, setFollowUpDate] = useState<string>('');
+  const [note, setNote] = useState<string>('');
+  const [title, setTitle] = useState<StatusOption | null>(null);
+const [notes_description, setNotes_description] = useState<string>('');
+const [file, setFile] = useState<File | null>(null);
+const [isSubmitting, setIsSubmitting] = useState(false);
+ const [activitiesData, setActivitiesData] = useState<LeadActivityes[] | null>(null);
+  const [errores, setErrores] = useState<string | null>(null);
+ const [statuses, setStatuses] = useState<StatusOption | null>(null);
+const [notesLogs, setNotesLogs] = useState<NotesLog[]>([]);
+  const [activeEditorIndex, setActiveEditorIndex] = useState<number | null>(null);
+   const [isEditor3, setIsEditor3] = useState(false);
+  const [isEditor, setIsEditor] = useState(false);
+  const [isEditor2, setIsEditor2] = useState(false);
+   const [openModal, setOpenModal] = useState(false);
+   
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [error, setError] = useState<string | null>(null);
   // const [lead, setLead] = useState<LeadType | null>(null);
 
 
@@ -124,9 +195,7 @@ const LeadsDetails = () => {
     });
     setStars(starsState);
   };
-  const [isEditor3, setIsEditor3] = useState(false);
-  const [isEditor, setIsEditor] = useState(false);
-  const [isEditor2, setIsEditor2] = useState(false);
+  
   // Call initializeStarsState once when the component mounts
   React.useEffect(() => {
     initializeStarsState();
@@ -137,7 +206,7 @@ const LeadsDetails = () => {
       [index]: !prevStars[index],
     }));
   };
-  const [openModal, setOpenModal] = useState(false);
+  
   const sortbydata = [
     { value: "Sort By Date", label: "Sort By Date" },
     { value: "Ascending", label: "Ascending" },
@@ -186,10 +255,7 @@ const LeadsDetails = () => {
   
   // post api of notes start
 
-const [title, setTitle] = useState<StatusOption | null>(null);
-const [notes_description, setNotes_description] = useState<string>('');
-const [file, setFile] = useState<File | null>(null);
-const [isSubmitting, setIsSubmitting] = useState(false);
+ 
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   if (e.target.files && e.target.files.length > 0) {
@@ -246,8 +312,7 @@ const handleSubmits = async (e: React.FormEvent) => {
 
   // get notes lead start
 
-   const [notesLogs, setNotesLogs] = useState<NotesLog[]>([]);
-  const [activeEditorIndex, setActiveEditorIndex] = useState<number | null>(null);
+    
 
  
   const ascendingAndDescending = [
@@ -301,14 +366,202 @@ const handleSubmits = async (e: React.FormEvent) => {
   };
   // get notes lead end
 
+
+  // get lead acitivites start
  
+  
+  
+  
+  // const { id: paramId } = useParams<{ id: string }>();
+  // const leadId = paramId ? parseInt(paramId, 10) : null;
+
+  // const ascendingandDecending = [
+  //   { value: 'ascending', label: 'Ascending' },
+  //   { value: 'descending', label: 'Descending' }
+  // ];
+
+  // // Fetch activities effect
+  // useEffect(() => {
+  //   const fetchActivities = async () => {
+  //     if (!leadId) return;
+      
+  //     setLoading(true);
+  //     setErrores(null);
+      
+  //     try {
+  //       const data: any = await getLeadActivities(leadId);
+  //       setActivitiesData(data.recentCallLogs); 
+  //       console.log("lead activities get api ===============>", data);
+  //     } catch (err: any) {
+  //       setErrores('Failed to fetch activities'); // Fixed: use setErrores consistently
+  //       console.error('Error:', err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchActivities();
+  // }, [leadId]);
+
+  // // Helper functions
+  // const getStatusIcon = (status: string) => {
+  //   switch (status) {
+  //     case 'answered':
+  //       return 'ti ti-phone';
+  //     case 'busy':
+  //       return 'ti ti-phone-off';
+  //     case 'not_reachable':
+  //       return 'ti ti-phone-x';
+  //     case 'no_answer':
+  //       return 'ti ti-phone-pause';
+  //     default:
+  //       return 'ti ti-phone';
+  //   }
+  // };
+
+  // const getStatusBadgeClass = (status: string) => {
+  //   switch (status) {
+  //     case 'answered':
+  //       return 'bg-secondary-success';
+  //     case 'busy':
+  //       return 'bg-warning';
+  //     case 'not_reachable':
+  //       return 'bg-danger';
+  //     case 'no_answer':
+  //       return 'bg-pending';
+  //     default:
+  //       return 'bg-info';
+  //   }
+  // };
+
+  // const formatDatees = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleDateString('en-US', {
+  //     year: 'numeric',
+  //     month: 'short',
+  //     day: 'numeric'
+  //   });
+  // };
+
+  // const formatTime = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleTimeString('en-US', {
+  //     hour: '2-digit',
+  //     minute: '2-digit',
+  //     hour12: true
+  //   });
+  // };
+
+  // // Helper function to check if activity is a CallLog (has user and status properties)
+  // const isCallLog = (activity: LeadActivityes): activity is CallLoges => {
+  //   return 'user' in activity && 'status' in activity;
+  // };
+
+  // // Helper function to check if activity is a Note (has title and notes_description properties)
+  // const isNote = (activity: LeadActivityes): activity is Notes => {
+  //   return 'title' in activity && 'notes_description' in activity;
+  // };
+
+  // // Helper function to get date from activity based on type - FIXED
+  // const getActivityDate = (activity: LeadActivityes) => {
+  //   // For call logs, use follow_up_date if available, otherwise created_at
+  //   if (isCallLog(activity)) {
+  //     return activity.follow_up_date || activity.created_at;
+  //   }
+  //   // For notes, use created_at or updated_at
+  //   if (isNote(activity)) {
+  //     return activity.created_at || activity.updated_at;
+  //   }
+
+  //   return "1990-9-9";
+   
+  // };
+
+  // const groupActivitiesByDate = () => {
+  //   const grouped: { [key: string]: LeadActivityes[] } = {};
+    
+  //   if (activitiesData) {
+  //     // Since activitiesData is now LeadActivityes[], we can work with it directly
+  //     // Sort by date using helper function
+  //     const sortedActivities = [...activitiesData].sort((a, b) => {
+  //       const dateA = getActivityDate(a) ?? '';
+  //       const dateB = getActivityDate(b) ?? '';
+  //       return new Date(dateB).getTime() - new Date(dateA).getTime();
+  //     });
+
+  //     // Group by date using helper function
+  //     sortedActivities.forEach(activity => {
+  //       const activityDate = getActivityDate(activity);
+  //       const date = formatDatees(activityDate);
+  //       if (!grouped[date]) {
+  //         grouped[date] = [];
+  //       }
+  //       grouped[date].push(activity);
+  //     });
+  //   }
+
+  //   return grouped;
+  // };
+
+  // // Render loading state
+  // if (loading) {
+  //   return <div className="text-center p-4">Loading activities...</div>;
+  // }
+
+  // // Render error state
+  // if (errores) {
+  //   return (
+  //     <div className="alert alert-danger" role="alert">
+  //       {errores}
+  //     </div>
+  //   );
+  // }
+
+  // // Render no data state
+  // if (!activitiesData) {
+  //   return <div className="text-center p-4">No activities data available</div>;
+  // }
+
+  // const groupedActivities = groupActivitiesByDate();
+
+  // get lead acitivites end 
+
+  
+
+const handleSendEmail = async () => {
+  if (!emailTo || !emailSubject || !emailBody) {
+    alert('To, subject, and body are required');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('to', emailTo);
+  formData.append('subject', emailSubject);
+  formData.append('body', emailBody);
+
+  if (emailCc) formData.append('cc[]', emailCc);
+  if (emailBcc) formData.append('bcc[]', emailBcc);
+  if (emailAttachment) formData.append('attachment', emailAttachment);
+
+  setEmailSending(true);
+
+  try {
+    const response = await api.post('/api/send-email', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    alert('Email sent!');
+  } catch (err: any) {
+    console.error(err);
+    alert('Failed to send email: ' + (err.response?.data?.error || err.message));
+  } finally {
+    setEmailSending(false);
+  }
+};
 
 
   //  call log start
 
-  const [status, setStatus] = useState<StatusOption | null>(null);
-  const [followUpDate, setFollowUpDate] = useState<string>('');
-  const [note, setNote] = useState<string>('');
+  
   // const [update, setUpdate] = useState(false);
 
   const handleSubmit = async () => {
@@ -359,7 +612,7 @@ useEffect(() => {
 
   // post lead status start
 
-  const [statuses, setStatuses] = useState<StatusOption | null>(null);
+  
   
 
  const handleSubmitLead = async (opt: string) => {
@@ -404,8 +657,6 @@ useEffect(() => {
 
   // get api of call log start
  
-  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
-  const [error, setError] = useState<string | null>(null);
 // const [loading, setLoading] = useState<boolean>(false);
 
  
@@ -1121,370 +1372,117 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                       </div>
                     </div>
                   </div>
+
+                  {/* <div className="tab-pane active show" id="activities">
+      <div className="card">
+        <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+          <h4 className="fw-semibold">Activities</h4>
+          <div>
+            <div className="form-sort mt-0">
+              <i className="ti ti-sort-ascending-2" />
+              <Select
+                className="select"
+                options={ascendingandDecending}
+                placeholder="Ascending"
+                classNamePrefix="react-select"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="card-body">
+          {Object.entries(groupedActivities).map(([date, activities]) => (
+            <div key={date}>
+              <div className="badge badge-soft-purple fs-14 fw-normal shadow-none mb-3">
+                <i className="ti ti-calendar-check me-1" />
+                {date}
+              </div>
+              
+              {activities.map((activity: any) => (
+                <div key={`${activity.type}-${activity.id}`} className="card border shadow-none mb-3">
+                  <div className="card-body p-3">
+                    <div className="d-flex">
+                      <span className={`avatar avatar-md flex-shrink-0 rounded me-2 ${
+                        activity.type === 'call' ? getStatusBadgeClass(activity.status) :
+                        activity.type === 'note' ? 'bg-orange' : 'bg-info'
+                      }`}>
+                        <i className={
+                          activity.type === 'call' ? getStatusIcon(activity.status) :
+                          activity.type === 'note' ? 'ti ti-notes' : 'ti ti-calendar-event'
+                        } />
+                      </span>
+                      <div className="flex-grow-1">
+                        {activity.type === 'call' && (
+                          <>
+                            <h6 className="fw-medium mb-1">
+                              Call - {activity.status.replace('_', ' ').toUpperCase()}
+                            </h6>
+                            <p className="mb-1">{activity.note}</p>
+                            <p className="mb-0 text-muted small">
+                              {formatTime(activity.created_at)} 
+                              {activity.follow_up_date && (
+                                <span className="ms-2">
+                                  • Follow up: {formatDate(activity.follow_up_date)}
+                                </span>
+                              )}
+                            </p>
+                          </>
+                        )}
+                        
+                        {activity.type === 'note' && (
+                          <>
+                            <h6 className="fw-medium mb-1">
+                              Note: {activity.title}
+                            </h6>
+                            <p className="mb-1">{activity.notes_description}</p>
+                            {activity.file_path && (
+                              <p className="mb-1">
+                                <Link to={activity.file_path} target="_blank" className="text-primary">
+                                  <i className="ti ti-paperclip me-1" />
+                                  View Attachment
+                                </Link>
+                              </p>
+                            )}
+                            <p className="mb-0 text-muted small">
+                              {formatTime(activity.created_at)}
+                            </p>
+                          </>
+                        )}
+                        
+                        {activity.type === 'upcoming' && (
+                          <>
+                            <h6 className="fw-medium mb-1">
+                              Upcoming Call - {activity.status.replace('_', ' ').toUpperCase()}
+                            </h6>
+                            <p className="mb-1">{activity.note}</p>
+                            <p className="mb-0 text-muted small">
+                              Scheduled: {formatDate(activity.follow_up_date)}
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+          
+          {Object.keys(groupedActivities).length === 0 && (
+            <div className="text-center p-4">
+              <p className="text-muted">No activities found for this lead.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div> */}
+
+
                   {/* /Activities */}
                   {/* Notes */}
 
 
                   {/* old code */}
-                   {/* <div className="tab-pane fade" id="notes">
-                    <div className="card">
-                      <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                        <h4 className="fw-semibold">Notes</h4>
-                        <div className="d-inline-flex align-items-center">
-                          <div className="form-sort me-3 mt-0">
-                            <i className="ti ti-sort-ascending-2" />
-                            <Select
-                              className="select"
-                              options={ascendingandDecending}
-                              placeholder="Ascending"
-                              classNamePrefix="react-select"
-                            />
-                          </div>
-                          <Link
-                            to="#"
-                            data-bs-toggle="modal"
-                            data-bs-target="#add_notes"
-                            className="link-purple fw-medium"
-                          >
-                            <i className="ti ti-circle-plus me-1" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="card-body">
-                        <div className="notes-activity">
-                          <div className="card mb-3">
-                            <div className="card-body">
-                              <div className="d-flex align-items-center justify-content-between pb-2">
-                                <div className="d-inline-flex align-items-center mb-2">
-                                  <span className="avatar avatar-md me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-19.jpg"
-                                      alt="img"
-                                    />
-                                  </span>
-                                  <div>
-                                    <h6 className="fw-medium mb-1">
-                                      Darlee Robertson
-                                    </h6>
-                                    <p className="mb-0">
-                                      15 Sep 2023, 12:10 pm
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="mb-2">
-                                  <div className="dropdown">
-                                    <Link
-                                      to="#"
-                                      className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                    >
-                                      <i className="ti ti-dots-vertical" />
-                                    </Link>
-                                    <div className="dropdown-menu dropdown-menu-right">
-                                      <Link className="dropdown-item" to="#">
-                                        <i className="ti ti-edit text-blue me-1" />
-                                        Edit
-                                      </Link>
-                                      <Link className="dropdown-item" to="#">
-                                        <i className="ti ti-trash text-danger me-1" />
-                                        Delete
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <h5 className="fw-medium mb-1">
-                                Notes added by Antony
-                              </h5>
-                              <p>
-                                A project review evaluates the success of an
-                                initiative and identifies areas for improvement.
-                                It can also evaluate a current project to
-                                determine whether it's on the right track. Or,
-                                it can determine the success of a completed
-                                project.{" "}
-                              </p>
-                              <div className="d-inline-flex align-items-center flex-wrap">
-                                <div className="note-download me-3">
-                                  <div className="note-info">
-                                    <span className="note-icon bg-secondary-success">
-                                      <i className="ti ti-file-spreadsheet" />
-                                    </span>
-                                    <div>
-                                      <h6 className="fw-medium mb-1">
-                                        Project Specs.xls
-                                      </h6>
-                                      <p>365 KB</p>
-                                    </div>
-                                  </div>
-                                  <Link to="#">
-                                    <i className="ti ti-arrow-down" />
-                                  </Link>
-                                </div>
-                                <div className="note-download">
-                                  <div className="note-info">
-                                    <span className="note-icon">
-                                      <ImageWithBasePath
-                                        src="assets/img/media/media-35.jpg"
-                                        alt="img"
-                                      />
-                                    </span>
-                                    <div>
-                                      <h6 className="fw-medium mb-1">
-                                        090224.jpg
-                                      </h6>
-                                      <p>365 KB</p>
-                                    </div>
-                                  </div>
-                                  <Link to="#">
-                                    <i className="ti ti-arrow-down" />
-                                  </Link>
-                                </div>
-                              </div>
-                              <div className="notes-editor">
-                                <div
-                                  className="note-edit-wrap"
-                                  style={{
-                                    display: isEditor ? "block" : "none",
-                                  }}
-                                >
-                                  <DefaultEditor className="summernote" />
-                                  <div className="text-end note-btns">
-                                    <Link
-                                      to="#"
-                                      className="btn btn-light add-cancel"
-                                      onClick={() => setIsEditor(!isEditor3)}
-                                    >
-                                      Cancel
-                                    </Link>
-                                    <Link to="#" className="btn btn-primary">
-                                      Save
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="text-end">
-                                  <Link
-                                    to="#"
-                                    className="add-comment link-purple fw-medium"
-                                    onClick={() => setIsEditor(!isEditor)}
-                                  >
-                                    <i className="ti ti-square-plus me-1" />
-                                    Add Comment
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="card mb-3">
-                            <div className="card-body">
-                              <div className="d-flex align-items-center justify-content-between pb-2">
-                                <div className="d-inline-flex align-items-center mb-2">
-                                  <span className="avatar avatar-md me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-20.jpg"
-                                      alt="img"
-                                    />
-                                  </span>
-                                  <div>
-                                    <h6 className="fw-medium mb-1">
-                                      Sharon Roy
-                                    </h6>
-                                    <p className="mb-0">
-                                      18 Sep 2023, 09:52 am
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="mb-2">
-                                  <div className="dropdown">
-                                    <Link
-                                      to="#"
-                                      className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                    >
-                                      <i className="ti ti-dots-vertical" />
-                                    </Link>
-                                    <div className="dropdown-menu dropdown-menu-right">
-                                      <Link className="dropdown-item" to="#">
-                                        <i className="ti ti-edit text-blue me-1" />
-                                        Edit
-                                      </Link>
-                                      <Link className="dropdown-item" to="#">
-                                        <i className="ti ti-trash text-danger me-1" />
-                                        Delete
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <h5 className="fw-medium mb-1">
-                                Notes added by Antony
-                              </h5>
-                              <p>
-                                A project plan typically contains a list of the
-                                essential elements of a project, such as
-                                stakeholders, scope, timelines, estimated cost
-                                and communication methods. The project manager
-                                typically lists the information based on the
-                                assignment.
-                              </p>
-                              <div className="d-inline-flex align-items-center flex-wrap">
-                                <div className="note-download me-3">
-                                  <div className="note-info">
-                                    <span className="note-icon bg-secondary-success">
-                                      <i className="ti ti-file-text" />
-                                    </span>
-                                    <div>
-                                      <h6 className="fw-medium mb-1">
-                                        Andrewpass.txt
-                                      </h6>
-                                      <p>365 KB</p>
-                                    </div>
-                                  </div>
-                                  <Link to="#">
-                                    <i className="ti ti-arrow-down" />
-                                  </Link>
-                                </div>
-                              </div>
-                              <div className="reply-box">
-                                <p>
-                                  The best way to get a project done faster is
-                                  to start sooner. A goal without a timeline is
-                                  just a dream.The goal you set must be
-                                  challenging. At the same time, it should be
-                                  realistic and attainable, not impossible to
-                                  reach.
-                                </p>
-                                <p>
-                                  Commented by{" "}
-                                  <span className="text-purple">Aeron</span> on
-                                  15 Sep 2023, 11:15 pm
-                                </p>
-                                <Link to="#" className="btn">
-                                  <i className="ti ti-arrow-back-up-double" />
-                                  Reply
-                                </Link>
-                              </div>
-                              <div className="notes-editor">
-                                <div
-                                  className="note-edit-wrap"
-                                  style={{
-                                    display: isEditor2 ? "block" : "none",
-                                  }}
-                                >
-                                  <DefaultEditor className="summernote" />
-                                  <div className="text-end note-btns">
-                                    <Link
-                                      to="#"
-                                      className="btn btn-light add-cancel"
-                                      onClick={() => setIsEditor2(!isEditor3)}
-                                    >
-                                      Cancel
-                                    </Link>
-                                    <Link to="#" className="btn btn-primary">
-                                      Save
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="text-end">
-                                  <Link
-                                    to="#"
-                                    className="add-comment link-purple fw-medium"
-                                    onClick={() => setIsEditor2(!isEditor2)}
-                                  >
-                                    <i className="ti ti-square-plus me-1" />
-                                    Add Comment
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="card mb-0">
-                            <div className="card-body">
-                              <div className="d-flex align-items-center justify-content-between pb-2">
-                                <div className="d-inline-flex align-items-center mb-2">
-                                  <span className="avatar avatar-md me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-21.jpg"
-                                      alt="img"
-                                    />
-                                  </span>
-                                  <div>
-                                    <h6 className="fw-medium mb-1">Vaughan</h6>
-                                    <p className="mb-0">
-                                      20 Sep 2023, 10:26 pm
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="mb-2">
-                                  <div className="dropdown">
-                                    <Link
-                                      to="#"
-                                      className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                    >
-                                      <i className="ti ti-dots-vertical" />
-                                    </Link>
-                                    <div className="dropdown-menu dropdown-menu-right">
-                                      <Link className="dropdown-item" to="#">
-                                        <i className="ti ti-edit text-blue me-1" />
-                                        Edit
-                                      </Link>
-                                      <Link className="dropdown-item" to="#">
-                                        <i className="ti ti-trash text-danger me-1" />
-                                        Delete
-                                      </Link>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <p>
-                                Projects play a crucial role in the success of
-                                organizations, and their importance cannot be
-                                overstated. Whether it's launching a new
-                                product, improving an existing
-                              </p>
-                              <div className="notes-editor">
-                                <div
-                                  className="note-edit-wrap"
-                                  style={{
-                                    display: isEditor3 ? "block" : "none",
-                                  }}
-                                >
-                                  <DefaultEditor className="summernote" />
-                                  <div className="text-end note-btns">
-                                    <Link
-                                      to="#"
-                                      className="btn btn-light add-cancel"
-                                      onClick={() => setIsEditor3(!isEditor3)}
-                                    >
-                                      Cancel
-                                    </Link>
-                                    <Link to="#" className="btn btn-primary">
-                                      Save
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="text-end">
-                                  <Link
-                                    to="#"
-                                    className="add-comment link-purple fw-medium"
-                                    onClick={() => setIsEditor3(!isEditor3)}
-                                  >
-                                    <i className="ti ti-square-plus me-1" />
-                                    Add Comment
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
+                   
 
                   {/* old code end */}
                 <div className="tab-pane fade" id="notes">
@@ -1639,266 +1637,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
 
                   {/* /Notes */}
                   {/* Calls */}
-                  {/* <div className="tab-pane fade" id="calls">
-                    <div className="card">
-                      <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                        <h4 className="fw-semibold">Calls</h4>
-                        <div className="d-inline-flex align-items-center">
-                          <Link
-                            to="#"
-                            data-bs-toggle="modal"
-                            data-bs-target="#create_call"
-                            className="link-purple fw-medium"
-                          >
-                            <i className="ti ti-circle-plus me-1" />
-                            Add New
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="card-body">
-                        <div className="card mb-3">
-                          <div className="card-body">
-                            <div className="d-sm-flex align-items-center justify-content-between pb-2">
-                              <div className="d-flex align-items-center mb-2">
-                                <span className="avatar avatar-md me-2 flex-shrink-0">
-                                  <ImageWithBasePath
-                                    src="assets/img/profiles/avatar-19.jpg"
-                                    alt="img"
-                                  />
-                                </span>
-                                <p>
-                                  <span className="text-dark fw-medium">
-                                    Darlee Robertson
-                                  </span>{" "}
-                                  logged a call on 23 Jul 2023, 10:00 pm
-                                </p>
-                              </div>
-                              <div className="d-inline-flex align-items-center mb-2">
-                                <div className="dropdown me-2">
-                                  <Link
-                                    to="#"
-                                    className="bg-danger py-1"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    Busy
-                                    <i className="ti ti-chevron-down ms-2" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link className="dropdown-item" to="#">
-                                      Busy
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      No Answer
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Unavailable
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Wrong Number
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Left Voice Message
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Moving Forward
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="dropdown">
-                                  <Link
-                                    to="#"
-                                    className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="ti ti-dots-vertical" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link className="dropdown-item" to="#">
-                                      <i className="ti ti-edit text-blue me-1" />
-                                      Edit
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      <i className="ti ti-trash text-danger me-1" />
-                                      Delete
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p>
-                              A project review evaluates the success of an
-                              initiative and identifies areas for improvement.
-                              It can also evaluate a current project to
-                              determine whether it's on the right track. Or, it
-                              can determine the success of a completed project.{" "}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="card mb-3">
-                          <div className="card-body">
-                            <div className="d-sm-flex align-items-center justify-content-between pb-2">
-                              <div className="d-flex align-items-center mb-2">
-                                <span className="avatar avatar-md me-2 flex-shrink-0">
-                                  <ImageWithBasePath
-                                    src="assets/img/profiles/avatar-20.jpg"
-                                    alt="img"
-                                  />
-                                </span>
-                                <p>
-                                  <span className="text-dark fw-medium">
-                                    Sharon Roy
-                                  </span>{" "}
-                                  logged a call on 28 Jul 2023, 09:00 pm
-                                </p>
-                              </div>
-                              <div className="d-inline-flex align-items-center mb-2">
-                                <div className="dropdown me-2">
-                                  <Link
-                                    to="#"
-                                    className="bg-pending py-1"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    No Answer
-                                    <i className="ti ti-chevron-down ms-2" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link className="dropdown-item" to="#">
-                                      Busy
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      No Answer
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Unavailable
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Wrong Number
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Left Voice Message
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Moving Forward
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="dropdown">
-                                  <Link
-                                    to="#"
-                                    className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="ti ti-dots-vertical" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link className="dropdown-item" to="#">
-                                      <i className="ti ti-edit text-blue me-1" />
-                                      Edit
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      <i className="ti ti-trash text-danger me-1" />
-                                      Delete
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p>
-                              A project plan typically contains a list of the
-                              essential elements of a project, such as
-                              stakeholders, scope, timelines, estimated cost and
-                              communication methods. The project manager
-                              typically lists the information based on the
-                              assignment.
-                            </p>
-                          </div>
-                        </div>
-                        <div className="card mb-0">
-                          <div className="card-body">
-                            <div className="d-sm-flex align-items-center justify-content-between pb-2">
-                              <div className="d-flex align-items-center mb-2">
-                                <span className="avatar avatar-md me-2 flex-shrink-0">
-                                  <ImageWithBasePath
-                                    src="assets/img/profiles/avatar-21.jpg"
-                                    alt="img"
-                                  />
-                                </span>
-                                <p>
-                                  <span className="text-dark fw-medium">
-                                    Vaughan
-                                  </span>{" "}
-                                  logged a call on 30 Jul 2023, 08:00 pm
-                                </p>
-                              </div>
-                              <div className="d-inline-flex align-items-center mb-2">
-                                <div className="dropdown me-2">
-                                  <Link
-                                    to="#"
-                                    className="bg-pending py-1"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    No Answer
-                                    <i className="ti ti-chevron-down ms-2" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link className="dropdown-item" to="#">
-                                      Busy
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      No Answer
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Unavailable
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Wrong Number
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Left Voice Message
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      Moving Forward
-                                    </Link>
-                                  </div>
-                                </div>
-                                <div className="dropdown">
-                                  <Link
-                                    to="#"
-                                    className="p-0 btn btn-icon btn-sm d-flex align-items-center justify-content-center"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                  >
-                                    <i className="ti ti-dots-vertical" />
-                                  </Link>
-                                  <div className="dropdown-menu dropdown-menu-right">
-                                    <Link className="dropdown-item" to="#">
-                                      <i className="ti ti-edit text-blue me-1" />
-                                      Edit
-                                    </Link>
-                                    <Link className="dropdown-item" to="#">
-                                      <i className="ti ti-trash text-danger me-1" />
-                                      Delete
-                                    </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <p>
-                              Projects play a crucial role in the success of
-                              organizations, and their importance cannot be
-                              overstated. Whether it's launching a new product,
-                              improving an existing
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
+                   
 
 
                    <div className="tab-pane fade show active" id="calls">
@@ -2252,73 +1991,56 @@ if (error) return <div className="alert alert-danger">{error}</div>;
                     </div>
                   </div>
                   {/* /Files */}
+
+                  {/* /Files */}
                   {/* Email */}
                   <div className="tab-pane fade" id="email">
                     <div className="card">
-                      <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                        <h4 className="fw-semibold">Email</h4>
-                        <div className="d-inline-flex align-items-center">
-                          <OverlayTrigger
-                            placement="left"
-                            overlay={
-                              <Tooltip id="refresh-tooltip">
-                                There are no email accounts configured, Please
-                                configured your email account in order to Send/
-                                Create EMails
-                              </Tooltip>
-                            }
-                          >
-                            <Link to="#">
-                              <i className="ti ti-circle-plus me-1" />
-                              Create Email
-                            </Link>
-                          </OverlayTrigger>
-                          {/* <Link
-                        to="#"
-                        className="link-purple fw-medium"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="left"
-                        data-bs-custom-className="tooltip-dark"
-                        data-bs-original-title=""
-                      >
-                        <i className="ti ti-circle-plus me-1" />
-                        Create Email
-                      </Link> */}
-                        </div>
+                      {/* <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"> */}
+                        {/* <h4 className="fw-semibold">Email</h4> */}
+                        {/* <div className="d-inline-flex align-items-center"> */}
+                            <div className="card">
+                    <div className="card-header">
+                      <h4 className="fw-semibold">Send Email</h4>
+                    </div>
+                    <div className="card-body">
+                      <div className="mb-3">
+                        <label className="form-label">To</label>
+                        <input type="email" className="form-control" value={emailTo} onChange={e => setEmailTo(e.target.value)} />
                       </div>
-                      <div className="card-body">
-                        <div className="card border mb-0">
-                          <div className="card-body pb-0">
-                            <div className="row align-items-center">
-                              <div className="col-md-8">
-                                <div className="mb-3">
-                                  <h4 className="fw-medium mb-1">
-                                    Manage Emails
-                                  </h4>
-                                  <p>
-                                    You can send and reply to emails directly
-                                    via this section.
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="col-md-4 text-md-end">
-                                <div className="mb-3">
-                                  <Link
-                                    to="#"
-                                    className="btn btn-primary"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#create_email"
-                                  >
-                                    Connect Account
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="mb-3">
+                        <label className="form-label">CC</label>
+                        <input type="email" className="form-control" value={emailCc} onChange={e => setEmailCc(e.target.value)} />
                       </div>
+                      <div className="mb-3">
+                        <label className="form-label">BCC</label>
+                        <input type="email" className="form-control" value={emailBcc} onChange={e => setEmailBcc(e.target.value)} />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Subject</label>
+                        <input type="text" className="form-control" value={emailSubject} onChange={e => setEmailSubject(e.target.value)} />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Message</label>
+                        <textarea className="form-control" title="Message" value={emailBody} onChange={e => setEmailBody(e.target.value)} />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Attachment</label>
+                        <input type="file" className="form-control" onChange={e => setEmailAttachment(e.target.files?.[0] || null)} />
+                      </div>
+                      <button className="btn btn-primary" onClick={handleSendEmail} disabled={emailSending}>
+                        {emailSending ? 'Sending...' : 'Send Email'}
+                      </button>
                     </div>
                   </div>
+                  {/* </div> */}
+                  {/* </div> */}
+                          
+                        </div>
+                      </div>
+                  {/* Email */}
+                 
+
                   {/* /Email */}
                 </div>
                 {/* /Tab Content */}
@@ -2508,7 +2230,7 @@ if (error) return <div className="alert alert-danger">{error}</div>;
             </label>
             <textarea
               className="form-control"
-              rows={4}
+              rows={4} 
               value={notes_description}
               onChange={(e) => setNotes_description(e.target.value)}
               required
