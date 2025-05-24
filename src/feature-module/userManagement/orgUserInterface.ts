@@ -1,4 +1,4 @@
-export interface OrgUser {
+export interface userInsert {
     name :string;
     email:string;
     department: string ;
@@ -8,8 +8,9 @@ export interface OrgUser {
     phone : number ;
     status : string ;
     org_id : number; 
-    image : File; 
+    image : File | null; 
     role : string;
+    action:string;
 }
 
 export interface orgUserData {

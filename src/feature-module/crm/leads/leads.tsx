@@ -196,7 +196,7 @@ const Leads = () => {
 // }, []);
 
 
-const [sortOrder, setSortOrder] = useState<string>(""); // "", "asc", "desc", etc.
+const [sortOrder, setSortOrder] = useState<string>("");
 const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
   start: null,
   end: null,

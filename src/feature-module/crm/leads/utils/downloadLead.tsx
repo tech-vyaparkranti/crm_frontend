@@ -1,7 +1,6 @@
 import api from "../../../../api/api";
 
 export const downloadFile = async (type: 'pdf' | 'excel') => {
-    console.log(type,'ttt');
   try {
     const res = await api.get(`/api/leads/export/${type}`, {
   responseType: 'blob',
